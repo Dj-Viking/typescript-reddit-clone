@@ -1,23 +1,20 @@
 import { MikroORM } from '@mikro-orm/core';
 import { Post } from './entities/Post';
-
+import mikroConfig from './mikro-orm.config';
 
 async function main(){
-  const orm = await MikroORM.init({
-    entities: [Post],
-    dbName: 'fullstack_ts_db',
-    password: 'root123@',
-    type: 'postgresql',
-    debug: process.env.NODE_ENV !== 'production' //return true if running not in production
-  });
+  //connect to database
+  const orm = await MikroORM.init(mikroConfig);
   //console.log(orm);
-
+  await orm.getMigrator().up();
   const post = orm.em.create(Post, {
     title: 'my first post'
   });
-
   //em is entity manager
   await orm.em.persistAndFlush(post);
+
+  // const posts = await orm.em.find(Post, {});
+  // console.log(posts);
 }
 
 main().catch(e => console.log(e));
