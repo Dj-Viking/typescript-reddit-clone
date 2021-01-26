@@ -4,7 +4,7 @@ import { ObjectType, Field, Int } from 'type-graphql';
 //this is now both an object type and an entity
 @ObjectType()
 @Entity()
-export class Post {
+export class User {
 
   @Field(() => Int)
   @PrimaryKey()
@@ -19,7 +19,11 @@ export class Post {
   updatedAt = new Date();
 
   @Field(() => String)
+  @Property({ type: 'text', unique: true })
+  username!: string;
+
+  //not a field so can't select it
   @Property({ type: 'text' })
-  title!: string;
+  password!: string;
 
 }
