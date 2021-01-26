@@ -1,5 +1,6 @@
-import {Post} from './entities/Post';
-import {MikroORM} from "@mikro-orm/core";
+import { Post } from './entities/Post';
+import { User } from './entities/User';
+import { MikroORM } from "@mikro-orm/core";
 import path from 'path';
 
 //to make another migration run this command in the shell
@@ -10,7 +11,7 @@ const mikroConfig = {
     path: path.join(__dirname, './migrations'),
     pattern: /^[\w]+\d+\.[tj]s$/
   },
-  entities: [Post],
+  entities: [Post, User],
   dbName: 'fullstack_ts_db',
   password: 'root123@',
   type: 'postgresql',
