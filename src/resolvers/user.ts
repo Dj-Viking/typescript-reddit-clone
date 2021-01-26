@@ -48,26 +48,47 @@ export class UserResolver {
         }
     }
    */
-  @Mutation(() => User)
+  @Mutation(() => UserResponse)
   async register(
     @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
     @Ctx() { em }: MyContext
-  ) {
-    try {
-      const hashedPassword = await argon2.hash(options.password);
-      const user = em.create
-      (
-        User, 
-        { 
-          username: options.username, 
-          password: hashedPassword 
-        }
-      );
-      await em.persistAndFlush(user);
-      return user;
-    } catch (error) {
-      return console.log(error);
+  ): Promise<UserResponse> {
+    if (options.username.length <= 2) 
+    {
+      return {
+        errors: [
+          {
+            field: "Username",
+            message: "username length too short must be greater than 2 characters"
+          },
+        ],
+      };
     }
+    if (options.password.length <= 3) 
+    {
+      return {
+        errors: [
+          {
+            field: "Password",
+            message: "password length too short must be greater than 3 characters"
+          },
+        ],
+      };
+    }
+
+    const hashedPassword = await argon2.hash(options.password);
+    const user = em.create
+    (
+      User,
+      {
+        username: options.username,
+        password: hashedPassword
+      }
+    );
+    await em.persistAndFlush(user);
+    return {
+      user
+    };
   }
 
 
@@ -93,15 +114,15 @@ export class UserResolver {
   async login(
     @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
     @Ctx() { em }: MyContext
-  ): Promise<UserResponse | FieldError>{
+  ): Promise<UserResponse>{
     const user = await em.findOne(User, { username: options.username });
     if (!user) 
     {
       return {
         errors: [
           {
-            field: 'credentials',
-            message: 'incorrect credentials'
+            field: 'Credentials',
+            message: 'Incorrect credentials'
           },
         ],
       };
@@ -112,7 +133,7 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: "credentials",
+            field: "Credentials",
             message: "Incorrect credentials"
           },
         ],
