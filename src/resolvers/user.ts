@@ -53,42 +53,66 @@ export class UserResolver {
     @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
     @Ctx() { em }: MyContext
   ): Promise<UserResponse> {
-    if (options.username.length <= 2) 
+    try 
     {
-      return {
-        errors: [
-          {
-            field: "Username",
-            message: "username length too short must be greater than 2 characters"
-          },
-        ],
-      };
-    }
-    if (options.password.length <= 3) 
-    {
-      return {
-        errors: [
-          {
-            field: "Password",
-            message: "password length too short must be greater than 3 characters"
-          },
-        ],
-      };
-    }
-
-    const hashedPassword = await argon2.hash(options.password);
-    const user = em.create
-    (
-      User,
+      if (options.username.length <= 2) 
       {
-        username: options.username,
-        password: hashedPassword
+        return {
+          errors: [
+            {
+              field: "Username",
+              message: "username length too short must be greater than 2 characters"
+            },
+          ],
+        };
       }
-    );
-    await em.persistAndFlush(user);
-    return {
-      user
-    };
+      if (options.password.length <= 3) 
+      {
+        return {
+          errors: [
+            {
+              field: "Password",
+              message: "password length too short must be greater than 3 characters"
+            },
+          ],
+        };
+      }
+  
+      const hashedPassword = await argon2.hash(options.password);
+      const user = em.create
+      (
+        User,
+        {
+          username: options.username,
+          password: hashedPassword
+        }
+      );
+      await em.persistAndFlush(user);
+      return {
+        user
+      };
+    } catch (error) {
+      if (error.code === '23505' || error.detail.includes('already exists'))
+      {
+        return {
+          errors: [
+            {
+              field: 'Username',
+              message: "That username already exists!"
+            },
+          ],
+        };
+      } else {
+        return {
+          errors: [
+            {
+              field: 'Error',
+              message: error
+            }
+          ]
+        };
+      }
+    }
   }
 
 
