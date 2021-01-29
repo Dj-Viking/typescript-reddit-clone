@@ -187,6 +187,8 @@ export class UserResolver {
     }
     //login the user, and set the cookie
     req.session.userId = user.id;
+    req.session.randomString = 'slkdfjdkf';
+    console.log(req.session);
 
     return {
       user
