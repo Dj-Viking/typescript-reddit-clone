@@ -1,6 +1,15 @@
 import { MyContext } from 'src/types';
 import { User } from '../entities/User';
-import { Field, InputType, Resolver, Arg, Mutation, Ctx, ObjectType } from 'type-graphql';
+import { 
+  Field, 
+  InputType, 
+  Resolver, 
+  Arg, 
+  Mutation, 
+  Ctx, 
+  ObjectType,
+  Query 
+} from 'type-graphql';
 import argon2 from 'argon2';
 
 @InputType()
@@ -35,6 +44,16 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true})
+  async me(
+    @Ctx() { req, em }: MyContext
+  ){
+    // you are not logged in
+    if (!req.session.userId) return null;
+
+    const user = em.findOne(User, {id: req.session.userId});
+    return user;
+  }
 
   /**
    *  @example
@@ -51,7 +70,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async register(
     @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
-    @Ctx() { em }: MyContext
+    @Ctx() { req, em }: MyContext
   ): Promise<UserResponse> {
     try 
     {
@@ -88,6 +107,9 @@ export class UserResolver {
         }
       );
       await em.persistAndFlush(user);
+
+      //login the user after registration
+      req.session.userId = user.id;
       return {
         user
       };
@@ -163,7 +185,7 @@ export class UserResolver {
         ],
       };
     }
-
+    //login the user, and set the cookie
     req.session.userId = user.id;
 
     return {
