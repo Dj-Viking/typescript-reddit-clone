@@ -1,0 +1,24 @@
+//storing data into the session
+req.session.userId = user.id;
+
+{userId: 1} -> send to redis
+
+redis is a keyvalue store
+
+sess: kasdfjskdfj -> {userId: 1}
+
+//session middleware sets a cookie on the browser a signed version of the key { alksdjfa;lksdjfafj2390ifjpwaskj }
+
+//whenever a user makes a request
+
+{ alksdjfa;lksdjfafj2390ifjpwaskj } => sent to server 
+
+// server decrypts cookie and sends it to redis
+{ alksdjfa;lksdjfafj2390ifjpwaskj } => sess: kasdfjskdfj 
+
+
+//make a request to redis
+sess: kasdfjskdfj => {userId: 1}
+
+
+req.session = {userId: 1, ...otherstuff}

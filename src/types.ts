@@ -26,11 +26,17 @@ import { Session, SessionData } from 'express-session';
     }
 }
 /**/
-// & sign in typescript joins types together
+// & sign in typescript joins types together (intersection)
 // | sign in typescript gives the option for the type to be either one type or another (union)
 
 export type MyContext = {
   em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>
-  req: Request & {session: Session & Partial<SessionData> & {userId?: number}},
+  req: Request & //so we can make req.session.userId req.session.randomString available to be used
+                {
+                    session: Session 
+                    & Partial<SessionData> 
+                    & {userId?: number} 
+                    & {randomString?: String}
+                },
   res: Response
 }
