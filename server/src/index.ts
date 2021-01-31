@@ -36,20 +36,24 @@ async function main(){
 
   app.use(
     session({
-      name: 'qid',
+      name: 'sid',
       store: new RedisStore({ 
         client: redisClient, 
-        disableTouch: true 
+        disableTouch: false,
+        host: 'localhost',
+        port: 6739,
+        ttl: 86400
       }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10,// 10 years
         httpOnly: true, //if true cookie works in http
         sameSite: 'lax', //protecting csrf
-        secure: process.env.NODE_ENV === 'production' // cookie only works in https
+        //secure: process.env.NODE_ENV === 'production' // cookie only works in https
+        secure: false
       },
       secret: `${process.env.SECRET}`,
       resave: false,
-      saveUninitialized: false //dont need to store empty sessions, only store data when needing to store data
+      saveUninitialized: false 
     })
   );
   //create apollo server
@@ -63,7 +67,7 @@ async function main(){
 
   apolloServer.applyMiddleware({ app });
   app.use('/', (_, res) => {
-    res.send('hello');
+    res.status(200).send('hello');
   });
 
   const PORT = process.env.PORT || 4000;
@@ -87,7 +91,7 @@ console.log('hello world');
   "prettier.printWidth": 80,
   "prettier.tabWidth": 2,
   "prettier.useTabs": false,
-  "request.credentials": "include",
+  "request.credentials": "include", *****super important will not set cookies in browser if set to "omit" !!!!
   "schema.disableComments": true,
   "schema.polling.enable": true,
   "schema.polling.endpointFilter": "*localhost*",

@@ -57,13 +57,40 @@ export class UserResolver {
 
   /**
    *  @example
-    mutation {
+    mutation 
+    {
         register(options: {
           username: "viking",
           password: "viking"
-        }){
-          username
-          id
+        })
+        {
+          errors{
+            field
+            message
+          }
+          user{
+            username
+            id
+            createdAt
+            updatedAt
+          }
+        }
+    }
+
+    mutation register($options: UsernamePasswordInput!)
+    {
+        register(options: $options)
+        {
+          errors{
+            field
+            message
+          }
+          user{
+            username
+            id
+            createdAt
+            updatedAt
+          }
         }
     }
    */
@@ -140,11 +167,13 @@ export class UserResolver {
 
   /**
    * @example
-    mutation{
+    mutation
+    {
         login(options: {
           username: "username",
           password: "password"
-        }){
+        })
+        {
           errors{
             field
             message
@@ -152,6 +181,23 @@ export class UserResolver {
           user{
             id
             username
+          }
+        }
+    }
+
+    mutation login($options: UsernamePasswordInput)
+    {
+        login(options: $options)
+        {
+          errors{
+            field
+            message
+          }
+          user{
+            id
+            username
+            createdAt
+            updatedAt
           }
         }
     }
