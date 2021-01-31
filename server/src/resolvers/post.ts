@@ -1,6 +1,24 @@
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Field, Int, Mutation, ObjectType, Query, Resolver } from 'type-graphql';
 import { Post } from '../entities/Post';
 import { MyContext } from '../types';
+//test
+//test
+//test
+
+@ObjectType()
+class PostFieldError {
+  @Field()
+  field: String
+  @Field()
+  message: String
+}
+@ObjectType()
+class PostResponse {
+  @Field(() => [PostFieldError], { nullable: true })
+  errors?: PostFieldError[]
+  @Field(() => Post, { nullable: true })
+  post?: Post | null
+}
 
 @Resolver()
 export class PostResolver {
@@ -32,6 +50,7 @@ export class PostResolver {
           title
           createdAt
           updatedAt
+          createdBy
         }
       }
       {
@@ -40,6 +59,7 @@ export class PostResolver {
           title
           createdAt
           updatedAt
+          createdBy
         }
       }
 
@@ -65,6 +85,7 @@ export class PostResolver {
           createdAt
           updatedAt
           title
+          createdBy
         }
       }
       createPost(
@@ -74,16 +95,43 @@ export class PostResolver {
         createdAt
         updatedAt
         title
+        createdBy
       }
    */
-  @Mutation(() => Post)
+  @Mutation(() => PostResponse)
   async createPost(
     @Arg('title') title: string,
-    @Ctx() { em }: MyContext
-  ): Promise<Post> {
-    const post = em.create(Post, { title });
-    await em.persistAndFlush(post);
-    return post;
+    @Ctx() { req, em }: MyContext
+  ): Promise<PostResponse> {
+    let post;
+    if (req.session) {
+      console.log(req.session);
+      post = em.create(
+        Post,
+        {
+          title: title
+        }
+      );
+      post.createdBy = req.session.username as string;
+      console.log(post);
+      if (post.createdBy) {
+        await em.persistAndFlush(post);
+      }
+    }
+    if (post?.createdBy) {
+      return {
+        post
+      }
+    } else {
+      return {
+        errors: [
+          {
+            field: 'Credentials',
+            message: 'Must be logged in to do that!'
+          }
+        ],
+      };
+    }
   }
 
   /**

@@ -31,12 +31,16 @@ import { Session, SessionData } from 'express-session';
 
 export type MyContext = {
   em: EntityManager<any> & EntityManager<IDatabaseDriver<Connection>>
-  req: Request & //so we can make req.session.userId req.session.randomString available to be used
+  //performing an interesection so we can make req.session.userId 
+  //req.session.welcomeBackMsg and req.session.username available to be assigned
+  // new values on the req.session object
+  req: Request & 
                 {
                     session: Session 
                     & Partial<SessionData> 
-                    & {userId?: number} 
-                    & {randomString?: String}
-                },
+                    & { userId?: number } 
+                    & { welcomeBackMsg?: String }
+                    & { username?: String }
+                }
   res: Response
 }

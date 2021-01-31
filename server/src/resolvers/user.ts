@@ -21,22 +21,19 @@ class UsernamePasswordInput {
 }
 
 @ObjectType()
-class FieldError {
-
+class UserFieldError {
   @Field()
   field: String
-
   @Field()
   message: String
-
 }
 
 //user returned if worked
 // or error returned if error was there
 @ObjectType()
 class UserResponse {
-  @Field(() => [FieldError], { nullable: true })
-  errors?: FieldError[]
+  @Field(() => [UserFieldError], { nullable: true })
+  errors?: UserFieldError[]
 
   @Field(() => User, { nullable: true })
   user?: User
@@ -137,6 +134,7 @@ export class UserResolver {
 
       //login the user after registration
       req.session.userId = user.id;
+      req.session.username = user.username;
       return {
         user
       };
@@ -233,7 +231,8 @@ export class UserResolver {
     }
     //login the user, and set the cookie
     req.session.userId = user.id;
-    req.session.randomString = 'slkdfjdkf';
+    req.session.welcomeBackMsg = 'slkdfjdkf';
+    req.session.username = user.username;
     console.log(req.session);
 
     return {
