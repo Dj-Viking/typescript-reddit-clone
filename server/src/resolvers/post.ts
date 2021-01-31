@@ -2,6 +2,7 @@ import { Arg, Ctx, Field, Int, Mutation, ObjectType, Query, Resolver } from 'typ
 import { Post } from '../entities/Post';
 import { MyContext } from '../types';
 //test
+//test
 
 @ObjectType()
 class PostFieldError {
