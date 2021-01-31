@@ -22,4 +22,8 @@ export class Post {
   @Property({ type: 'text' })
   title!: string;
 
+  @Field(() => String)
+  @Property({ type: 'text' })
+  createdBy!: string;
+
 }
