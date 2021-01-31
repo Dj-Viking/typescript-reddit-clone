@@ -1,6 +1,7 @@
 import { Arg, Ctx, Field, Int, Mutation, ObjectType, Query, Resolver } from 'type-graphql';
 import { Post } from '../entities/Post';
 import { MyContext } from '../types';
+//test
 
 @ObjectType()
 class PostFieldError {
