@@ -4,7 +4,7 @@ import {
     Form, 
     Field
 } from 'formik';
-import { Button, FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/react';
+import { Box, Button, FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/react';
 import Wrapper from '../components/wrapper';
 
 interface registerProps {
@@ -57,14 +57,19 @@ const Register: React.FC<registerProps> = ({}) => {
                                 </FormControl>
                                 )}
                             </Field>
-                            <Button
-                                mt={4}
-                                colorScheme="teal"
-                                isLoading={props.isSubmitting}
-                                type="submit"
-                            >
-                                Submit
-                            </Button>
+                                <Box
+                                    display="flex"
+                                    justifyContent="center"
+                                >
+                                    <Button
+                                        mt={4}
+                                        colorScheme="teal"
+                                        isLoading={props.isSubmitting}
+                                        type="submit"
+                                    >
+                                        Submit
+                                    </Button>
+                                </Box>
                         </Form>
                     )
                 }

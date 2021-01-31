@@ -8,8 +8,8 @@ interface wrapperProps {
 const Wrapper: React.FC<wrapperProps> = ({children}) => {
     return (
         <Box
-            maxW="800px"
-            mt={8}
+            maxW="300px"
+            mt="8"
             mx="auto"
             w="100%"
         >
