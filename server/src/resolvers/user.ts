@@ -156,7 +156,7 @@ export class UserResolver {
               field: 'Error',
               message: error
             }
-          ]
+          ],
         };
       }
     }
@@ -231,7 +231,7 @@ export class UserResolver {
     }
     //login the user, and set the cookie
     req.session.userId = user.id;
-    req.session.welcomeBackMsg = 'slkdfjdkf';
+    req.session.welcomeBackMsg = `Welcome back ${user.username}!`;
     req.session.username = user.username;
     console.log(req.session);
 
