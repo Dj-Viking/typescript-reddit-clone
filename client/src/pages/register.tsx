@@ -63,11 +63,11 @@ const Register: React.FC<RegisterProps> = ({}) => {
                       </FormControl>
                     )
                   }
-                </Field>
+                </Field>  
               </Box>
 
               <Box mt={4}>
-              <Field 
+                <Field 
                   name="password" 
                   validate={validatePassword}
                 >
