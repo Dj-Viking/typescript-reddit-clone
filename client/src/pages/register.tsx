@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { Box, Button, FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/react';
 import Wrapper from '../components/wrapper';
+import { useMutation } from 'urql';
+import { REGISTER_MUTATION } from '../utils/mutations';
 
 interface RegisterProps {
 
@@ -9,6 +11,8 @@ interface RegisterProps {
 
 //in next.js the name of the file in the pages folder becomes a route
 const Register: React.FC<RegisterProps> = ({}) => {
+
+  const [,register] = useMutation(REGISTER_MUTATION);
 
   function validatePassword(value: string) {
     let error: string;
@@ -23,19 +27,42 @@ const Register: React.FC<RegisterProps> = ({}) => {
     return error;
   }
 
+  const [mutationMessage, setMutationMessage] = useState('');
+
   return (
     <Wrapper maxWVariant="responsive">
       <Formik
         initialValues={{ username: "", password: "" }}
-        onSubmit={(values, actions) => {
-          console.log(values);
-          //realistically do the ajax calls here
-          // and handle what happens before and after
-          // the data arrives
-          setTimeout(() => {
-            alert(JSON.stringify(values, null, 2))
-            actions.setSubmitting(false)
-          }, 200)
+        onSubmit={ async (values, actions) => {
+          
+          //console.log('form values', values);
+          //need to create the JSON object in the format
+          //  that the graphql mutation
+          // is expecting as an input type
+          let objectToSend = {
+            "options": {
+              "username": values.username,
+              "password": values.password
+            }
+          }
+          register(objectToSend)
+          .then(response => {
+            actions.setSubmitting(true);
+            console.log(response);
+            if (response.data.register.errors) {
+              setMutationMessage(`Error: ${response.data.register.errors[0].message}`);
+              setTimeout(() => {
+                actions.setSubmitting(false);
+              }, 1000);
+            }
+            else if (response.data.register.user) {
+              setMutationMessage(`Success! Teleporting to Home Page!`);
+            }
+          })
+          .catch(err => {
+            console.log(err);
+          });
+
         }}
       >
         {
@@ -90,8 +117,10 @@ const Register: React.FC<RegisterProps> = ({}) => {
                 </Field>
               </Box>
 
-              <Box display="flex" justifyContent="center">
+              <Box display="flex" justifyContent="center" flexDirection="column" >
                 <Button
+                  w="100px"
+                  mx="auto"
                   mt={4}
                   colorScheme="teal"
                   isLoading={props.isSubmitting}
@@ -99,6 +128,23 @@ const Register: React.FC<RegisterProps> = ({}) => {
                 >
                   Submit
                 </Button>
+                {
+                  mutationMessage.includes('Error:')
+                  ?
+                  <div style={{
+                    color: 'red',
+                    margin: '0 auto',
+                  }}>
+                    {mutationMessage}
+                  </div>
+                  :
+                  <div style={{
+                    color: 'green',
+                    margin: '0 auto'
+                  }}>
+                    {mutationMessage}
+                  </div>
+                }
               </Box>
 
             </Form>
