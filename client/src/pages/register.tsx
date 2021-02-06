@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Formik, Form, Field } from 'formik';
+import { Formik, Form, Field, FieldConfig, FieldProps } from 'formik';
 import { Box, Button, FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/react';
 import Wrapper from '../components/wrapper';
-import { useMutation } from 'urql';
-import { REGISTER_MUTATION } from '../utils/mutations';
+// import { useMutation } from 'urql';
+// import { REGISTER_MUTATION } from '../utils/mutations';
+import { useRouter } from 'next/router';
+import { useRegisterMutation } from '../generated/graphql';
 
 interface RegisterProps {
 
@@ -11,17 +13,19 @@ interface RegisterProps {
 
 //in next.js the name of the file in the pages folder becomes a route
 const Register: React.FC<RegisterProps> = ({}) => {
+  const router = useRouter()
 
-  const [,register] = useMutation(REGISTER_MUTATION);
+  //const [,register] = useMutation(REGISTER_MUTATION);
+  const [, register] = useRegisterMutation();
 
   function validatePassword(value: string) {
-    let error: string;
+    let error = '';
     if (!value) error = "Password is required";
     else if (value.length <= 3) error = "Password must be longer than 3 characters";
     return error;
   }
   function validateUsername(value: string) {
-    let error: string;
+    let error = '';
     if (!value) error = "Username is required";
     else if (value.length <= 3) error = "Username must be longer than 3 characters";
     return error;
@@ -49,14 +53,27 @@ const Register: React.FC<RegisterProps> = ({}) => {
           .then(response => {
             actions.setSubmitting(true);
             console.log(response);
-            if (response.data.register.errors) {
-              setMutationMessage(`Error: ${response.data.register.errors[0].message}`);
+            if (response.data?.register.errors) 
+            {
+              actions.setErrors({
+                username: `Error: ${
+                  response.data?.register.errors[0].field === "Username" 
+                  ? response.data?.register.errors[0].message 
+                  : response.data?.register.errors[0].message
+                }`
+              });
+              setMutationMessage(`Error: ${response.data?.register.errors[0].message}`);
               setTimeout(() => {
                 actions.setSubmitting(false);
               }, 1000);
             }
-            else if (response.data.register.user) {
+            else if (response.data?.register.user) 
+            {
+              //register success
               setMutationMessage(`Success! Teleporting to Home Page!`);
+              setTimeout(() => {
+                router.push('/');
+              }, 1500);
             }
           })
           .catch(err => {
@@ -68,15 +85,17 @@ const Register: React.FC<RegisterProps> = ({}) => {
         {
           (props) => (
             <Form>
-
               <Box mt={4}>
                 <Field 
                   name="username" 
                   validate={validateUsername}
                 >
                   {
-                    ({ field, form }) => (
-                      <FormControl isInvalid={form.errors.username && form.touched.username}>
+                    ({ field, form }: FieldProps): FieldConfig["children"] => (
+                      <FormControl isInvalid={
+                        !!form.errors.username 
+                        && !!form.touched.username
+                      }>
                         <FormLabel htmlFor="username">Username</FormLabel>
                         <Input
                           {...field}
@@ -99,8 +118,11 @@ const Register: React.FC<RegisterProps> = ({}) => {
                   validate={validatePassword}
                 >
                   {
-                    ({ field, form }) => (
-                      <FormControl isInvalid={form.errors.password && form.touched.password}>
+                    ({ field, form }: FieldProps): FieldConfig["children"] => (
+                      <FormControl isInvalid={
+                        !!form.errors.password 
+                        && !!form.touched.password
+                      }>
                         <FormLabel htmlFor="password">Password</FormLabel>
                         <Input
                           {...field}
