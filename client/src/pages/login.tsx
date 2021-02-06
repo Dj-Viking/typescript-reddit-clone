@@ -5,18 +5,18 @@ import Wrapper from '../components/wrapper';
 // import { useMutation } from 'urql';
 // import { REGISTER_MUTATION } from '../utils/mutations';
 import { useRouter } from 'next/router';
-import { useRegisterMutation } from '../generated/graphql';
+import { useLoginMutation } from '../generated/graphql';
 
-interface RegisterProps {
+interface LoginProps {
 
 }
 
 //in next.js the name of the file in the pages folder becomes a route
-const Register: React.FC<RegisterProps> = ({}) => {
+const Login: React.FC<LoginProps> = ({}) => {
   const router = useRouter()
 
-  //const [,register] = useMutation(REGISTER_MUTATION);
-  const [, register] = useRegisterMutation();
+  //const [,Login] = useMutation(Login_MUTATION);
+  const [, login] = useLoginMutation();
 
   function validatePassword(value: string) {
     let error = '';
@@ -49,25 +49,30 @@ const Register: React.FC<RegisterProps> = ({}) => {
               "password": values.password
             }
           }
-          register(objectToSend)
+          login(objectToSend)
           .then(response => {
             actions.setSubmitting(true);
             console.log(response);
-            if (response.data?.register.errors) 
+            if (response.data?.login.errors) 
             {
               actions.setErrors({
                 username: `Error: ${
-                  response.data?.register.errors[0].field === "Username" 
-                  ? response.data?.register.errors[0].message 
-                  : response.data?.register.errors[0].message
+                  response.data?.login.errors[0].field === "Credentials" 
+                  ? response.data?.login.errors[0].message 
+                  : response.data?.login.errors[0].message
+                }`,
+                password: `Error: ${
+                  response.data?.login.errors[0].field === "Credentials"
+                  ? response.data?.login.errors[0].message
+                  : response.data?.login.errors[0].message
                 }`
               });
-              setMutationMessage(`Error: ${response.data?.register.errors[0].message}`);
+              setMutationMessage(`Error: ${response.data?.login.errors[0].message}`);
               setTimeout(() => {
                 actions.setSubmitting(false);
               }, 1000);
             }
-            else if (response.data?.register.user) 
+            else if (response.data?.login.user) 
             {
               //register success
               setMutationMessage(`Success! Teleporting to Home Page!`);
@@ -148,7 +153,7 @@ const Register: React.FC<RegisterProps> = ({}) => {
                   isLoading={props.isSubmitting}
                   type="submit"
                 >
-                  Register
+                  Login
                 </Button>
                 {
                   mutationMessage.includes('Error:')
@@ -176,4 +181,4 @@ const Register: React.FC<RegisterProps> = ({}) => {
     </Wrapper>
   );
 }
-export default Register;
+export default Login; 
