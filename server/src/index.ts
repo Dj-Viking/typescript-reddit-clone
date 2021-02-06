@@ -76,12 +76,11 @@ async function main(){
     context: ({ req, res }): MyContext => ({ em: orm.em, req, res })
   });
 
-  apolloServer.applyMiddleware(
-    { 
-      app, 
-      cors: false
-    }
-  );
+  apolloServer.applyMiddleware({ 
+    app, 
+    cors: false
+  });
+  
   app.use('/', (_, res) => {
     res.status(200).send('hello');
   });
