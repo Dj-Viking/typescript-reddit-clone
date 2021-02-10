@@ -4,7 +4,7 @@ import { Provider, createClient, dedupExchange, fetchExchange } from 'urql';
 import { cacheExchange, Cache, QueryInput } from '@urql/exchange-graphcache';
 
 import theme from '../theme';
-import { LoginMutation, MeDocument, MeQuery, RegisterMutation } from '../generated/graphql';
+import { LoginMutation, LogoutMutation, MeDocument, MeQuery, RegisterMutation } from '../generated/graphql';
 
 function MyApp({ Component, pageProps }: any) {
 
@@ -53,6 +53,15 @@ function MyApp({ Component, pageProps }: any) {
                 if (result.register.errors) return query; 
                 else return { me: result.register.user }
               }
+            );
+          },
+          logout: function(_result, _args, cache, _info) {
+            // return null from the me query
+            betterUpdateQuery<LogoutMutation, MeQuery>(
+              cache,
+              { query: MeDocument },
+              _result,
+              () => ({ me: null })
             );
           },
         },

@@ -14,6 +14,7 @@ import cors from 'cors';
 import redis from 'redis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
+import { COOKIE_NAME } from './constants';
 
 async function main(){
   //connect to database
@@ -47,7 +48,7 @@ async function main(){
   //create redis client for session cookie
   app.use(
     session({
-      name: 'sid',
+      name: COOKIE_NAME,
       store: new RedisStore({ 
         client: redisClient, 
         disableTouch: false,

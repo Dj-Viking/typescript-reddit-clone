@@ -1,7 +1,7 @@
 import { Box, Button, Link } from '@chakra-ui/react';
 import React from 'react';
 import NextLink from 'next/link';
-import { useMeQuery } from '../generated/graphql';
+import { useLogoutMutation, useMeQuery } from '../generated/graphql';
 
 interface navbarProps {
   
@@ -9,6 +9,7 @@ interface navbarProps {
 
 const NavBar: React.FC<navbarProps> = ({  }) => {
   const [{data, fetching}] = useMeQuery();
+  const [{fetching: logoutFetching},logout] = useLogoutMutation();
 
   let body = null;
 
@@ -36,7 +37,17 @@ const NavBar: React.FC<navbarProps> = ({  }) => {
           <span style={{color: "white"}}>
             You are logged in as: <span style={{color: "yellow"}}>{data?.me?.username}</span>
           </span>
-          <Button ml={4} color="white" variant="link">Logout</Button>
+          <Button 
+            ml={4} 
+            color="white" 
+            variant="link"
+            isLoading={logoutFetching}
+            onClick={() => {
+              logout();
+            }}
+          >
+            Logout
+          </Button>
         </Box>
       </>
     );
