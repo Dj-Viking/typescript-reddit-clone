@@ -31,7 +31,9 @@ const Index = () => {
               style={{marginTop: '10px'}}
               key={post.id}
             >
-              <p style={{fontWeight: 'bold'}}>
+              <p 
+                style={{fontWeight: 'bold'}}
+              >
                 Title: 
                 <span 
                   style={{marginLeft: '10px', fontWeight: 'normal'}}
