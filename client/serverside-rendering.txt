@@ -1,0 +1,22 @@
+me  - request to the URL from browser -> localhost:3000
+//this makes a request to the next.js "server" or router
+-> next.js server
+//then next.js server makes a request to graphql server
+-> graphql server localhost:4000
+-> HTML is built on the server (if ssr is true) 
+-> and sending back to the client browser
+
+
+** next.js will switch between server side rendering and client side rendering 
+- if loading a page set for serverside rendering as a direct URL request from the browser, HTML is built by server and sent to client 
+- but if the page set for ssr is navigated to by the client side routing, then the page is client side rendered 
+  * i.e. navigating BACK from login page to the home page via client side routing, 
+    home page will client side render and make graphql requests from the client (since we already loaded the SPA once it will resort to client side rendering)
+    - if the page was navigated to by requesting the URL directly or refreshing (if not loading from the browser cache) 
+      the page will serverside render (if ssr is set true for that component)
+
+      the urql client is responsible for telling the graphql server to render the components' HTML on the server and if there
+      is data needed to be queried that will change the page dynamically this can be rendered on the server via the urql graphql client
+
+
+next js server (dev server) does not operate on a cookie

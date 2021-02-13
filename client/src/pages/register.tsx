@@ -6,6 +6,8 @@ import Wrapper from '../components/wrapper';
 // import { REGISTER_MUTATION } from '../utils/mutations';
 import { useRouter } from 'next/router';
 import { useRegisterMutation } from '../generated/graphql';
+import { createUrqlClient } from '../utils/createUrqlClient';
+import { withUrqlClient } from 'next-urql';
 
 interface RegisterProps {
 
@@ -176,4 +178,4 @@ const Register: React.FC<RegisterProps> = ({}) => {
     </Wrapper>
   );
 }
-export default Register;
+export default withUrqlClient(createUrqlClient)(Register);
