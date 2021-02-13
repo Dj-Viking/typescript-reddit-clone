@@ -23,7 +23,7 @@ const Index = () => {
         hello world
       </div>
       {
-        !data ? null
+        !data ? <div>Loading...</div>
         : 
         data.posts.map(post => {
           return (
@@ -31,7 +31,9 @@ const Index = () => {
               style={{marginTop: '10px'}}
               key={post.id}
             >
-              <p style={{fontWeight: 'bold'}}>
+              <p 
+                style={{fontWeight: 'bold'}}
+              >
                 Title: 
                 <span 
                   style={{marginLeft: '10px', fontWeight: 'normal'}}
@@ -63,7 +65,8 @@ const Index = () => {
   );
 }
 
-export default withUrqlClient(createUrqlClient)(Index);
+//server side rendering to help with SEO for certain pages that need to be found easily by google
+export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
 
 // export default withUrqlClient(
 //   (ssrExchange) => ({

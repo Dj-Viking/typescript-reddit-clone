@@ -6,6 +6,8 @@ import Wrapper from '../components/wrapper';
 // import { REGISTER_MUTATION } from '../utils/mutations';
 import { useRouter } from 'next/router';
 import { useLoginMutation } from '../generated/graphql';
+import { withUrqlClient } from 'next-urql';
+import { createUrqlClient } from '../utils/createUrqlClient';
 
 interface LoginProps {
 
@@ -181,4 +183,5 @@ const Login: React.FC<LoginProps> = ({}) => {
     </Wrapper>
   );
 }
-export default Login; 
+//need to use urql client now to call the mutations but can choose to serverside render the data or not
+export default withUrqlClient(createUrqlClient)(Login) ; 
