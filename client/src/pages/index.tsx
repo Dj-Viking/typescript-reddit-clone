@@ -18,47 +18,47 @@ const Index = () => {
 
   return (
     <>
-    <NavBar/>
-    <div>
-      hello world
-    </div>
-    {
-      !data ? null
-      : 
-      data.posts.map(post => {
-        return (
-          <div
-            style={{marginTop: '10px'}}
-            key={post.id}
-          >
-            <p style={{fontWeight: 'bold'}}>
-              Title: 
-              <span 
-                style={{marginLeft: '10px', fontWeight: 'normal'}}
-              >
-                {post.title}
-              </span>
-            </p>
-            <p 
-              style={{color: 'black', fontWeight: 'bold'}}
+      <NavBar/>
+      <div>
+        hello world
+      </div>
+      {
+        !data ? null
+        : 
+        data.posts.map(post => {
+          return (
+            <div
+              style={{marginTop: '10px'}}
+              key={post.id}
             >
-              Created By: 
-              <span 
-                style={{margin: '0 10px', color: 'black', fontWeight: 'normal'}}
+              <p style={{fontWeight: 'bold'}}>
+                Title: 
+                <span 
+                  style={{marginLeft: '10px', fontWeight: 'normal'}}
+                >
+                  {post.title}
+                </span>
+              </p>
+              <p 
+                style={{color: 'black', fontWeight: 'bold'}}
               >
-                {post.createdBy}
-              </span> 
-              @ 
-              <span 
-                style={{marginLeft: '10px', fontWeight: 'normal'}}
-              >
-                {formatDate(Number(post.createdAt))}
-              </span>
-            </p>
-          </div>
-        )
-      })
-    }
+                Created By: 
+                <span 
+                  style={{margin: '0 10px', color: 'black', fontWeight: 'normal'}}
+                >
+                  {post.createdBy}
+                </span> 
+                @ 
+                <span 
+                  style={{marginLeft: '10px', fontWeight: 'normal'}}
+                >
+                  {formatDate(Number(post.createdAt))}
+                </span>
+              </p>
+            </div>
+          )
+        })
+      }
     </>
   );
 }
