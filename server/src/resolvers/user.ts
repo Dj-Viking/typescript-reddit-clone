@@ -14,11 +14,19 @@ import argon2 from 'argon2';
 import { COOKIE_NAME } from '../constants';
 
 @InputType()
-class UserInput {
+class RegisterInput {
   @Field()
   email: string;
   @Field()
   username: string;
+  @Field()
+  password: string;
+}
+
+@InputType()
+class LoginInput {
+  @Field()
+  email: string;
   @Field()
   password: string;
 }
@@ -107,7 +115,7 @@ export class UserResolver {
    */
   @Mutation(() => UserResponse)
   async register(
-    @Arg('options', () => UserInput) options: UserInput,
+    @Arg('options', () => RegisterInput) options: RegisterInput,
     @Ctx() { req, em }: MyContext
   ): Promise<UserResponse> {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -229,11 +237,10 @@ export class UserResolver {
    */
   @Mutation(() => UserResponse)
   async login(
-    @Arg('email', () => String) email: string,
-    @Arg('password', () => String) password: string,
+    @Arg('options', () => LoginInput) options: LoginInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse>{
-    const user = await em.findOne(User, { email: email });
+    const user = await em.findOne(User, { email: options.email });
     if (!user) 
     {
       return {
@@ -245,7 +252,7 @@ export class UserResolver {
         ],
       };
     }
-    const valid = await argon2.verify(user.password, password);
+    const valid = await argon2.verify(user.password, options.password);
     if (!valid)
     {
       return {

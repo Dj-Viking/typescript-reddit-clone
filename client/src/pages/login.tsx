@@ -9,9 +9,7 @@ import { useLoginMutation } from '../generated/graphql';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 
-interface LoginProps {
-
-}
+interface LoginProps {}
 
 //in next.js the name of the file in the pages folder becomes a route
 const Login: React.FC<LoginProps> = ({}) => {
@@ -23,13 +21,16 @@ const Login: React.FC<LoginProps> = ({}) => {
   function validatePassword(value: string) {
     let error = '';
     if (!value) error = "Password is required";
-    else if (value.length <= 3) error = "Password must be longer than 3 characters";
+    else if (value.length <= 3) 
+      error = "Password must be longer than 3 characters";
     return error;
   }
-  function validateUsername(value: string) {
+  function validateEmail(value: string) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let error = '';
     if (!value) error = "Username is required";
-    else if (value.length <= 3) error = "Username must be longer than 3 characters";
+    else if (emailRegex.test(value) === false) 
+      error = "Email must be a valid format, i.e. example@mail.com";
     return error;
   }
 
@@ -38,27 +39,27 @@ const Login: React.FC<LoginProps> = ({}) => {
   return (
     <Wrapper maxWVariant="responsive">
       <Formik
-        initialValues={{ username: "", password: "" }}
+        initialValues={{ email: "", password: "" }}
         onSubmit={ async (values, actions) => {
           
           //console.log('form values', values);
           //need to create the JSON object in the format
           //  that the graphql mutation
           // is expecting as an input type
-          let objectToSend = {
+          let objectToSubmit = {
             "options": {
-              "username": values.username,
+              "email": values.email,
               "password": values.password
             }
           }
-          login(objectToSend)
+          login(objectToSubmit)
           .then(response => {
             actions.setSubmitting(true);
             console.log(response);
             if (response.data?.login.errors) 
             {
               actions.setErrors({
-                username: `Error: ${
+                email: `Error: ${
                   response.data?.login.errors[0].field === "Credentials" 
                   ? response.data?.login.errors[0].message 
                   : response.data?.login.errors[0].message
@@ -94,25 +95,25 @@ const Login: React.FC<LoginProps> = ({}) => {
             <Form>
               <Box mt={4}>
                 <Field 
-                  name="username" 
-                  validate={validateUsername}
+                  name="email" 
+                  validate={validateEmail}
                 >
                   {
                     ({ field, form }: FieldProps): FieldConfig["children"] => (
                       <FormControl isInvalid={
-                        !!form.errors.username 
-                        && !!form.touched.username
+                        !!form.errors.email 
+                        && !!form.touched.email
                       }>
-                        <FormLabel htmlFor="username">Username</FormLabel>
+                        <FormLabel htmlFor="email">Email</FormLabel>
                         <Input
                           {...field}
-                          type="username" 
-                          id="username" 
-                          placeholder="username" 
+                          type="text" 
+                          id="email" 
+                          placeholder="email" 
                           autoComplete="off"
                           required
                         />
-                        <FormErrorMessage>{form.errors.username}</FormErrorMessage>
+                        <FormErrorMessage>{form.errors.email}</FormErrorMessage>
                       </FormControl>
                     )
                   }

@@ -42,6 +42,7 @@ export type User = {
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
   username: Scalars['String'];
+  email: Scalars['String'];
 };
 
 export type Mutation = {
@@ -49,6 +50,7 @@ export type Mutation = {
   createPost: PostResponse;
   updatePost: Post;
   deletePost: Scalars['Boolean'];
+  forgotPassword: Scalars['Boolean'];
   register: UserResponse;
   login: UserResponse;
   logout: Scalars['Boolean'];
@@ -71,13 +73,18 @@ export type MutationDeletePostArgs = {
 };
 
 
+export type MutationForgotPasswordArgs = {
+  email: Scalars['String'];
+};
+
+
 export type MutationRegisterArgs = {
-  options: UsernamePasswordInput;
+  options: RegisterInput;
 };
 
 
 export type MutationLoginArgs = {
-  options: UsernamePasswordInput;
+  options: LoginInput;
 };
 
 export type PostResponse = {
@@ -104,13 +111,19 @@ export type UserFieldError = {
   message: Scalars['String'];
 };
 
-export type UsernamePasswordInput = {
+export type RegisterInput = {
+  email: Scalars['String'];
   username: Scalars['String'];
   password: Scalars['String'];
 };
 
+export type LoginInput = {
+  email: Scalars['String'];
+  password: Scalars['String'];
+};
+
 export type LoginMutationVariables = Exact<{
-  options: UsernamePasswordInput;
+  options: LoginInput;
 }>;
 
 
@@ -137,7 +150,7 @@ export type LogoutMutation = (
 );
 
 export type RegisterMutationVariables = Exact<{
-  options: UsernamePasswordInput;
+  options: RegisterInput;
 }>;
 
 
@@ -157,7 +170,7 @@ export type RegisterMutation = (
 
 export type UserInfoFragment = (
   { __typename?: 'User' }
-  & Pick<User, 'id' | 'username' | 'createdAt' | 'updatedAt'>
+  & Pick<User, 'id' | 'username' | 'email' | 'createdAt' | 'updatedAt'>
 );
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
@@ -186,12 +199,13 @@ export const UserInfoFragmentDoc = gql`
     fragment userInfo on User {
   id
   username
+  email
   createdAt
   updatedAt
 }
     `;
 export const LoginDocument = gql`
-    mutation login($options: UsernamePasswordInput!) {
+    mutation login($options: LoginInput!) {
   login(options: $options) {
     errors {
       field
@@ -217,7 +231,7 @@ export function useLogoutMutation() {
   return Urql.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument);
 };
 export const RegisterDocument = gql`
-    mutation register($options: UsernamePasswordInput!) {
+    mutation register($options: RegisterInput!) {
   register(options: $options) {
     errors {
       field
