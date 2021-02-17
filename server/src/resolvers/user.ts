@@ -14,19 +14,29 @@ import argon2 from 'argon2';
 import { COOKIE_NAME } from '../constants';
 
 @InputType()
-class UsernamePasswordInput {
+class RegisterInput {
   @Field()
-  username: string
+  email: string;
   @Field()
-  password: string
+  username: string;
+  @Field()
+  password: string;
+}
+
+@InputType()
+class LoginInput {
+  @Field()
+  email: string;
+  @Field()
+  password: string;
 }
 
 @ObjectType()
 class UserFieldError {
   @Field()
-  field: String
+  field: String;
   @Field()
-  message: String
+  message: String; 
 }
 
 //user returned if worked
@@ -42,6 +52,17 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg('email') email: string,
+    @Ctx() { em } : MyContext
+  ){
+    const user = await em.findOne(User, {email});
+    console.log(user);
+    return true;
+  }
+
   @Query(() => User, { nullable: true})
   async me(
     @Ctx() { req, em }: MyContext
@@ -94,11 +115,23 @@ export class UserResolver {
    */
   @Mutation(() => UserResponse)
   async register(
-    @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
+    @Arg('options', () => RegisterInput) options: RegisterInput,
     @Ctx() { req, em }: MyContext
   ): Promise<UserResponse> {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     try 
     {
+      if (emailRegex.test(options.email) === false) 
+      {
+        return {
+          errors: [
+            {
+              field: "Email",
+              message: "Email is not in correct format. Must be like example@mail.com"
+            }
+          ]
+        }
+      }
       if (options.username.length <= 2) 
       {
         return {
@@ -128,6 +161,7 @@ export class UserResolver {
         User,
         {
           username: options.username,
+          email: options.email,
           password: hashedPassword
         }
       );
@@ -203,17 +237,17 @@ export class UserResolver {
    */
   @Mutation(() => UserResponse)
   async login(
-    @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
+    @Arg('options', () => LoginInput) options: LoginInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse>{
-    const user = await em.findOne(User, { username: options.username });
+    const user = await em.findOne(User, { email: options.email });
     if (!user) 
     {
       return {
         errors: [
           {
             field: 'Credentials',
-            message: 'Incorrect credentials'
+            message: 'Incorrect Credentials'
           },
         ],
       };
@@ -225,7 +259,7 @@ export class UserResolver {
         errors: [
           {
             field: "Credentials",
-            message: "Incorrect credentials"
+            message: "Incorrect Credentials"
           },
         ],
       };
@@ -245,16 +279,22 @@ export class UserResolver {
   logout(
     @Ctx() {req, res}: MyContext
   ){
-    return new Promise(resolve => req.session.destroy(error => {
-      res.clearCookie(COOKIE_NAME);
-      if (error) {
-        console.log(error);
-        resolve(false);
-        return;
-      } else {
-        resolve(true);
-      }
-    }));
+    return new Promise
+    (
+      resolve => req.session.destroy
+      (
+        error => {
+          res.clearCookie(COOKIE_NAME);
+          if (error) {
+            console.log(error);
+            resolve(false);
+            return;
+          } else {
+            resolve(true);
+          }
+        }
+      )
+    );
   }
 
 }

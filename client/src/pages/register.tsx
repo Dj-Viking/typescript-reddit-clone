@@ -9,9 +9,7 @@ import { useRegisterMutation } from '../generated/graphql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { withUrqlClient } from 'next-urql';
 
-interface RegisterProps {
-
-}
+interface RegisterProps {}
 
 //in next.js the name of the file in the pages folder becomes a route
 const Register: React.FC<RegisterProps> = ({}) => {
@@ -32,26 +30,35 @@ const Register: React.FC<RegisterProps> = ({}) => {
     else if (value.length <= 3) error = "Username must be longer than 3 characters";
     return error;
   }
+  function validateEmail(value: string) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let error = '';
+    if (!value) error = "Email is required";
+    else if (emailRegex.test(value) === false)
+      error = "Email must be in valid format. i.e. example@mail.com"
+    return error;
+  }
 
   const [mutationMessage, setMutationMessage] = useState('');
 
   return (
     <Wrapper maxWVariant="responsive">
       <Formik
-        initialValues={{ username: "", password: "" }}
+        initialValues={{ username: "", email: "", password: "" }}
         onSubmit={ async (values, actions) => {
           
           //console.log('form values', values);
           //need to create the JSON object in the format
           //  that the graphql mutation
           // is expecting as an input type
-          let objectToSend = {
+          let objectToSubmit = {
             "options": {
               "username": values.username,
+              "email": values.email,
               "password": values.password
             }
           }
-          register(objectToSend)
+          register(objectToSubmit)
           .then(response => {
             actions.setSubmitting(true);
             console.log(response);
@@ -61,6 +68,11 @@ const Register: React.FC<RegisterProps> = ({}) => {
                 username: `Error: ${
                   response.data?.register.errors[0].field === "Username" 
                   ? response.data?.register.errors[0].message 
+                  : response.data?.register.errors[0].message
+                }`,
+                email: `Error: ${
+                  response.data?.register.errors[0].field === "Email"
+                  ? response.data?.register.errors[0].message
                   : response.data?.register.errors[0].message
                 }`
               });
@@ -101,7 +113,7 @@ const Register: React.FC<RegisterProps> = ({}) => {
                         <FormLabel htmlFor="username">Username</FormLabel>
                         <Input
                           {...field}
-                          type="username" 
+                          type="text" 
                           id="username" 
                           placeholder="username" 
                           autoComplete="off"
@@ -112,6 +124,33 @@ const Register: React.FC<RegisterProps> = ({}) => {
                     )
                   }
                 </Field>  
+              </Box>
+
+              <Box mt={4}>
+                <Field 
+                  name="email" 
+                  validate={validateEmail}
+                >
+                  {
+                    ({ field, form }: FieldProps): FieldConfig["children"] => (
+                      <FormControl isInvalid={
+                        !!form.errors.email 
+                        && !!form.touched.email
+                      }>
+                        <FormLabel htmlFor="email">Email</FormLabel>
+                        <Input
+                          {...field}
+                          type="text" 
+                          id="email" 
+                          placeholder="email" 
+                          autoComplete="off"
+                          required
+                        />
+                        <FormErrorMessage>{form.errors.email}</FormErrorMessage>
+                      </FormControl>
+                    )
+                  }
+                </Field>
               </Box>
 
               <Box mt={4}>
