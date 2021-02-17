@@ -7,9 +7,9 @@ import { MyContext } from '../types';
 @ObjectType()
 class PostFieldError {
   @Field()
-  field: String
+  field: String;
   @Field()
-  message: String
+  message: String;
 }
 @ObjectType()
 class PostResponse {

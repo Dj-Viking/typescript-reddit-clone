@@ -22,6 +22,10 @@ export class User {
   @Property({ type: 'text', unique: true })
   username!: string;
 
+  @Field(() => String)
+  @Property({ type: 'text', unique: true})
+  email!: string;
+
   //not a field so can't select it
   @Property({ type: 'text' })
   password!: string;

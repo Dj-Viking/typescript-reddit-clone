@@ -43,7 +43,8 @@ export const createUrqlClient = (_ssrExchange: any) => ({
           },
           logout: function(_result, _args, cache, _info) {
             // return null from the me query
-            betterUpdateQuery<LogoutMutation, MeQuery>(
+            betterUpdateQuery<LogoutMutation, MeQuery>
+            (
               cache,
               { query: MeDocument },
               _result,

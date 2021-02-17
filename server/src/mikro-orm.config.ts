@@ -12,6 +12,7 @@ const mikroConfig = {
     path: path.join(__dirname, './migrations'),
     pattern: /^[\w]+\d+\.[tj]s$/
   },
+  // entities: [User],
   entities: [User, Post],
   dbName: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,

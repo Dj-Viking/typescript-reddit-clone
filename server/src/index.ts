@@ -15,8 +15,10 @@ import redis from 'redis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import { COOKIE_NAME } from './constants';
+import { sendEmail } from './utils/sendEmail';
 
 async function main(){
+  sendEmail(process.env.NODEMAILER_EMAIL_TO as string, "sup");
   //connect to database
   const orm = await MikroORM.init(mikroConfig);
   //console.log(orm);
