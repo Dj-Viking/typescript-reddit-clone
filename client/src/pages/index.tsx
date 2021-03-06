@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import NavBar from '../components/navbar';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
@@ -6,6 +6,10 @@ import { usePostsQuery } from '../generated/graphql';
 import moment from 'moment';
 
 const Index = () => {
+
+  useEffect(() => {
+    document.title = "Home"
+  }, []);
 
   const [{data}] = usePostsQuery();
 

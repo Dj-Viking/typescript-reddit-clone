@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field, FieldConfig, FieldProps } from 'formik';
 import { Box, Button, FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/react';
 import Wrapper from '../components/wrapper';
@@ -17,6 +17,10 @@ const Login: React.FC<LoginProps> = ({}) => {
 
   //const [,Login] = useMutation(Login_MUTATION);
   const [, login] = useLoginMutation();
+
+  useEffect(() => {
+    document.title = "Login"
+  }, [])
 
   function validatePassword(value: string) {
     let error = '';
@@ -161,19 +165,19 @@ const Login: React.FC<LoginProps> = ({}) => {
                 {
                   mutationMessage.includes('Error:')
                   ?
-                  <div style={{
-                    color: 'red',
-                    margin: '0 auto',
-                  }}>
-                    {mutationMessage}
-                  </div>
+                    <div style={{
+                      color: 'red',
+                      margin: '0 auto',
+                    }}>
+                      {mutationMessage}
+                    </div>
                   :
-                  <div style={{
-                    color: 'green',
-                    margin: '0 auto'
-                  }}>
-                    {mutationMessage}
-                  </div>
+                    <div style={{
+                      color: 'green',
+                      margin: '0 auto'
+                    }}>
+                      {mutationMessage}
+                    </div>
                 }
               </Box>
 
@@ -185,4 +189,4 @@ const Login: React.FC<LoginProps> = ({}) => {
   );
 }
 //need to use urql client now to call the mutations but can choose to serverside render the data or not
-export default withUrqlClient(createUrqlClient)(Login) ; 
+export default withUrqlClient(createUrqlClient)(Login); 
