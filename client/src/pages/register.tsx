@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field, FieldConfig, FieldProps } from 'formik';
 import { Box, Button, FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/react';
 import Wrapper from '../components/wrapper';
@@ -17,6 +17,10 @@ const Register: React.FC<RegisterProps> = ({}) => {
 
   //const [,register] = useMutation(REGISTER_MUTATION);
   const [, register] = useRegisterMutation();
+
+  useEffect(() => {
+    document.title = "Register"
+  }, [])
 
   function validatePassword(value: string) {
     let error = '';
@@ -194,19 +198,19 @@ const Register: React.FC<RegisterProps> = ({}) => {
                 {
                   mutationMessage.includes('Error:')
                   ?
-                  <div style={{
-                    color: 'red',
-                    margin: '0 auto',
-                  }}>
-                    {mutationMessage}
-                  </div>
+                    <div style={{
+                      color: 'red',
+                      margin: '0 auto',
+                    }}>
+                      {mutationMessage}
+                    </div>
                   :
-                  <div style={{
-                    color: 'green',
-                    margin: '0 auto'
-                  }}>
-                    {mutationMessage}
-                  </div>
+                    <div style={{
+                      color: 'green',
+                      margin: '0 auto'
+                    }}>
+                      {mutationMessage}
+                    </div>
                 }
               </Box>
 

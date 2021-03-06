@@ -2,6 +2,8 @@ import { ChakraProvider, ColorModeProvider } from '@chakra-ui/react';
 import React from 'react';
 import theme from '../theme';
 
+import './changepass.css';
+
 function MyApp({ Component, pageProps }: any) {
   return (
     <ChakraProvider resetCSS theme={theme}>

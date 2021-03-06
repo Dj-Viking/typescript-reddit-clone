@@ -2,12 +2,16 @@ import { cacheExchange } from "@urql/exchange-graphcache";
 import { dedupExchange, fetchExchange } from "urql";
 import { LoginMutation, MeQuery, MeDocument, RegisterMutation, LogoutMutation } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
+import { NextUrqlPageContext } from "next-urql";
 
 
-export const createUrqlClient = (_ssrExchange: any) => ({
+export const createUrqlClient = (_ssrExchange: any, ctx?: NextUrqlPageContext ) => ({
   url: "http://localhost:4000/graphql" || process.env.API_ENDPOINT as string,
   fetchOptions: {
-    credentials: 'include' as const
+    credentials: 'include' as const,
+    headers: {
+      Authorization: `Bearer ${ ctx?.req?.headers?.authorization ?? '' }` as string
+    }
   },
   exchanges: [
     dedupExchange,

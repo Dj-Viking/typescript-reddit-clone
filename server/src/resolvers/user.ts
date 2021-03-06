@@ -1,4 +1,4 @@
-import { MyContext } from 'src/types';
+import { MyContext } from '../types';
 import { User } from '../entities/User';
 import { 
   Field, 
@@ -11,7 +11,9 @@ import {
   Query 
 } from 'type-graphql';
 import argon2 from 'argon2';
-import { COOKIE_NAME } from '../constants';
+import { COOKIE_NAME, FORGET_PASS_PREFIX } from '../constants';
+import { sendEmail } from '../utils/sendEmail';
+const uuid = require('uuid');
 
 @InputType()
 class RegisterInput {
@@ -56,11 +58,121 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async forgotPassword(
     @Arg('email') email: string,
-    @Ctx() { em } : MyContext
+    @Ctx() { em, RedisClient } : MyContext
   ){
-    const user = await em.findOne(User, {email});
-    console.log(user);
-    return true;
+    try {
+      const user = await em.findOne(User, {email});
+      if (!user) {
+        //email not in db
+        // dont send the email
+        return true;
+      }
+      //if we actually matched a user 
+      // the mutation will take some time
+      // to execute
+      const token = uuid.v4();
+  
+      //set the token with ioredis
+      const thing = await RedisClient.set(
+        FORGET_PASS_PREFIX + token, //key
+        user.id, //value type
+        'ex', 
+        1000 * 60 * 60 * 24 //token expires after 1 day
+      );
+
+      console.log(thing);
+  
+      await sendEmail(email,
+        `<a href="http://localhost:3000/change-password/${token}">Reset your password</a>`
+      );
+      return true;
+    } catch (error) {
+      console.log(error);
+      return true;
+    }
+  }
+
+  @Mutation(() => UserResponse)
+  async changePassword(
+    @Arg('token') token: string,
+    @Arg('newPassword') newPassword: string,
+    @Ctx() { em, RedisClient, req }: MyContext
+  ): Promise<UserResponse>{
+
+    try {
+      
+      if (newPassword.length <= 3) 
+      {
+        return {
+          errors: [
+            {
+              field: "newPassword",
+              message: "New password length too short must be greater than 3 characters"
+            },
+          ],
+        };
+      }
+  
+      const key = FORGET_PASS_PREFIX + token;
+      const userId = await RedisClient.get(key)
+      console.log('user ID returned from REDIS CLIENT!!!', Promise.resolve(userId));
+      if (!userId) 
+      {
+        return {
+          errors: [
+            {
+              field: "token",
+              message: "token expired"
+            },
+          ],
+        };
+      }
+  
+      const user = await em.findOne
+      (
+        User,
+        {
+          id: parseInt(userId)
+        }
+      );
+
+      if (!user) 
+      {
+        return {
+          errors: [
+            {
+              field: "token",
+              message: "token expired"
+            },
+          ],
+        };
+      }
+  
+      user.password = await argon2.hash(newPassword);
+      await em.persistAndFlush(user);
+
+      //delete the key so we can't change
+      // the password again because the token
+      // will be forcibly expired
+      await RedisClient.del(key)
+
+      //log in user after password change
+      req.session.userId = user.id;
+
+      return {
+        user
+      }
+    } catch (error) {
+      console.log(error);
+      return {
+        errors: [
+          {
+            field: "error",
+            message: error
+          },
+        ],
+      };
+    }
   }
 
   @Query(() => User, { nullable: true})

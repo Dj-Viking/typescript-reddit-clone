@@ -11,7 +11,7 @@ import { PostResolver } from './resolvers/post';
 import { UserResolver } from './resolvers/user';
 import { MyContext } from 'src/types';
 import cors from 'cors';
-import redis from 'redis';
+import Redis from 'ioredis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import { COOKIE_NAME } from './constants';
@@ -36,8 +36,7 @@ async function main(){
   const app = express();
   
   const RedisStore = connectRedis(session);
-  const redisClient = redis.createClient();
-
+  const RedisClient = new Redis();
   //set cors middleware for express
   app.use(
     //can apply cors to a particular route
@@ -52,7 +51,7 @@ async function main(){
     session({
       name: COOKIE_NAME,
       store: new RedisStore({ 
-        client: redisClient, 
+        client: RedisClient, 
         disableTouch: false,
         host: 'localhost',
         port: 6739,
@@ -76,7 +75,7 @@ async function main(){
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false
     }),
-    context: ({ req, res }): MyContext => ({ em: orm.em, req, res })
+    context: ({ req, res }): MyContext => ({ em: orm.em, req, res, RedisClient })
   });
 
   apolloServer.applyMiddleware({ 
