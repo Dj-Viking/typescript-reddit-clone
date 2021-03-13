@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box } from '@chakra-ui/react';
 
-export type WrapperMaxWVariant = "small" | "regular" | "responsive"
+export type WrapperMaxWVariant = "small" | "regular" | "responsive" | "80%"
 
 //creating option props with '?' 
 interface WrapperProps {
@@ -12,10 +12,12 @@ const Wrapper: React.FC<WrapperProps> = ({
   children,
   maxWVariant
 }) => {
-  function checkVariantProp(variant) {
+  function checkVariantProp(variant?: WrapperMaxWVariant) {
     if (variant === "regular") return "600px";
     else if (variant === "small") return "300px";
     else if (variant === "responsive") return "50%";
+    else if (variant === "80%") return "80%";
+    else return "100%"
   }
   return (
     <Box
