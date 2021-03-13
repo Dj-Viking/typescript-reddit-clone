@@ -192,9 +192,9 @@ const ForgotPassword: React.FC<{}> = ({}) => {
                         {mutationMessage}
                       </p>
                       <Link>
-                      <p style={{margin: "0 auto", color: "teal", textAlign: "center"}}>
-                        Forgot Password?
-                      </p>
+                        <p style={{margin: "0 auto", color: "teal", textAlign: "center"}}>
+                          Forgot Password?
+                        </p>
                       </Link>
                     </div>
                   </NextLink>
