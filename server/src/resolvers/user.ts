@@ -41,6 +41,21 @@ class UserFieldError {
   message: String; 
 }
 
+@ObjectType()
+class ForgotPassError {
+  @Field()
+  field: String;
+  @Field()
+  message: String;
+}
+@ObjectType()
+class ForgotPassResponse {
+  @Field(() => [ForgotPassError], {nullable: true})
+  errors?: ForgotPassError[]
+  @Field(() => Boolean, {nullable: true})
+  completed?: Boolean
+}
+
 //user returned if worked
 // or error returned if error was there
 @ObjectType()
@@ -55,17 +70,24 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
 
-  @Mutation(() => Boolean)
+  @Mutation(() => ForgotPassResponse)
   async forgotPassword(
     @Arg('email') email: string,
     @Ctx() { em, RedisClient } : MyContext
-  ){
+  ): Promise<ForgotPassResponse>{
     try {
       const user = await em.findOne(User, {email});
       if (!user) {
         //email not in db
         // dont send the email
-        return true;
+        return {
+          errors: [
+            {
+              field: "Credentials",
+              message: "There was a problem with this request. Please try again later"
+            }
+          ]
+        };
       }
       //if we actually matched a user 
       // the mutation will take some time
@@ -85,10 +107,19 @@ export class UserResolver {
       await sendEmail(email,
         `<a href="http://localhost:3000/change-password/${token}">Reset your password</a>`
       );
-      return true;
+      return {
+        completed: true
+      }
     } catch (error) {
       console.log(error);
-      return true;
+      return {
+        errors: [
+          {
+            field: "Credentials",
+            message: "There was a problem with this request. Please try again later"
+          }
+        ]
+      };
     }
   }
 
