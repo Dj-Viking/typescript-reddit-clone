@@ -1,23 +1,29 @@
 //import { sleep } from 'src/utils/sleep';
-import { Arg, Ctx, Field, Int, Mutation, ObjectType, Query, Resolver } from 'type-graphql';
+import { 
+  Arg, 
+  //Field, 
+  Int, 
+  Mutation, 
+  //ObjectType, 
+  Query, 
+  Resolver 
+} from 'type-graphql';
+import { getConnection } from 'typeorm';
 import { Post } from '../entities/Post';
-import { MyContext } from '../types';
-
-
-@ObjectType()
-class PostFieldError {
-  @Field()
-  field: String;
-  @Field()
-  message: String;
-}
-@ObjectType()
-class PostResponse {
-  @Field(() => [PostFieldError], { nullable: true })
-  errors?: PostFieldError[]
-  @Field(() => Post, { nullable: true })
-  post?: Post | null
-}
+// @ObjectType()
+// class PostFieldError {
+//   @Field()
+//   field: String;
+//   @Field()
+//   message: String;
+// }
+// @ObjectType()
+// class PostResponse {
+//   @Field(() => [PostFieldError], { nullable: true })
+//   errors?: PostFieldError[]
+//   @Field(() => Post, { nullable: true })
+//   post?: Post | null
+// }
 
 @Resolver()
 export class PostResolver {
@@ -34,9 +40,8 @@ export class PostResolver {
     }
    */
   @Query(() => [Post])
-  async posts(@Ctx() { em }: MyContext): Promise<Post[]> {
-    //await sleep(3000);
-    return em.find(Post, {});
+  async posts(): Promise<Post[]> {
+    return Post.find();
   }
 
 
@@ -66,10 +71,9 @@ export class PostResolver {
    */
   @Query(() => Post, { nullable: true })
   post(
-    @Arg('identifier', () => Int) id: number,
-    @Ctx() { em }: MyContext
-  ): Promise<Post | null> {
-    return em.findOne(Post, { id });
+    @Arg('id', () => Int) id: number,
+  ): Promise<Post | undefined> {
+    return Post.findOne(id);
   }
 
 
@@ -98,40 +102,24 @@ export class PostResolver {
         createdBy
       }
    */
-  @Mutation(() => PostResponse)
+  @Mutation(() => Post)
   async createPost(
     @Arg('title') title: string,
-    @Ctx() { req, em }: MyContext
-  ): Promise<PostResponse> {
+  ): Promise<Post | undefined> {
     let post;
-    if (req.session) {
-      console.log(req.session);
-      post = em.create(
-        Post,
+      const result = await getConnection().createQueryBuilder().insert().into(Post).values(
         {
           title: title
         }
-      );
-      post.createdBy = req.session.username as string;
-      console.log(post);
-      if (post.createdBy) {
-        await em.persistAndFlush(post);
-      }
-    }
-    if (post?.createdBy) {
-      return {
-        post
-      }
-    } else {
-      return {
-        errors: [
-          {
-            field: 'Credentials',
-            message: 'Must be logged in to do that!'
-          }
-        ],
-      };
-    }
+      )
+      .returning('*')
+      .execute();
+      console.log('query builder result', result);
+      //only returning the first user object in the array, 
+      // i guess I could insert as many objects into the table and will
+      // return more created objects into the raw array
+      post = result.raw[0];
+      return post;
   }
 
   /**
@@ -165,15 +153,18 @@ export class PostResolver {
   async updatePost(
     @Arg('id', () => Int) id: number,
     @Arg('title', () => String, { nullable: true }) title: string,
-    @Ctx() { em }: MyContext
   ): Promise<Post | null> {
-    const post = await em.findOne(Post, { id });
+    const post = await Post.findOne({
+      where: {
+        id: id
+      }
+    });
     if (!post) {
       return null;
     }
     if (typeof title !== 'undefined') {
       post.title = title;
-      await em.persistAndFlush(post);
+      await Post.update({ id }, { title })
     }
     return post;
   }
@@ -191,10 +182,9 @@ export class PostResolver {
   @Mutation(() => Boolean)
   async deletePost(
     @Arg('id', () => Int) id: number,
-    @Ctx() { em }: MyContext
   ): Promise<boolean> {
     try {
-      await em.nativeDelete(Post, { id });
+      await Post.delete(id);
       return true;
     } catch (error) {
       console.log(error);

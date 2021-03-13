@@ -1,8 +1,7 @@
 require('dotenv').config();
 import 'reflect-metadata';
-import { MikroORM } from '@mikro-orm/core';
-//import { Post } from './entities/Post';
-import mikroConfig from './mikro-orm.config';
+import { Post } from './entities/Post';
+import { User } from './entities/User';
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
@@ -16,21 +15,20 @@ import session from 'express-session';
 import connectRedis from 'connect-redis';
 import { COOKIE_NAME } from './constants';
 import { sendEmail } from './utils/sendEmail';
+import { createConnection } from 'typeorm';
 
 async function main(){
   sendEmail(process.env.NODEMAILER_EMAIL_TO as string, "sup");
   //connect to database
-  const orm = await MikroORM.init(mikroConfig);
-  //console.log(orm);
-  await orm.getMigrator().up();
-  // const post = orm.em.create(Post, {
-  //   title: 'my first post'
-  // });
-  // //em is entity manager
-  // await orm.em.persistAndFlush(post);
-
-  // const posts = await orm.em.find(Post, {});
-  // console.log(posts);
+  const connection = await createConnection({
+    type: 'postgres',
+    database: process.env.DB_NAME,
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    logging: true,
+    synchronize: true, //synchronize usually true during dev
+    entities: [Post, User]
+  });
 
   //create express app
   const app = express();
@@ -75,7 +73,7 @@ async function main(){
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false
     }),
-    context: ({ req, res }): MyContext => ({ em: orm.em, req, res, RedisClient })
+    context: ({ req, res }): MyContext => ({ req, res, RedisClient })
   });
 
   apolloServer.applyMiddleware({ 
