@@ -50,7 +50,7 @@ export type Mutation = {
   createPost: PostResponse;
   updatePost: Post;
   deletePost: Scalars['Boolean'];
-  forgotPassword: Scalars['Boolean'];
+  forgotPassword: ForgotPassResponse;
   changePassword: UserResponse;
   register: UserResponse;
   login: UserResponse;
@@ -106,6 +106,18 @@ export type PostFieldError = {
   message: Scalars['String'];
 };
 
+export type ForgotPassResponse = {
+  __typename?: 'ForgotPassResponse';
+  errors?: Maybe<Array<ForgotPassError>>;
+  completed?: Maybe<Scalars['Boolean']>;
+};
+
+export type ForgotPassError = {
+  __typename?: 'ForgotPassError';
+  field: Scalars['String'];
+  message: Scalars['String'];
+};
+
 export type UserResponse = {
   __typename?: 'UserResponse';
   errors?: Maybe<Array<UserFieldError>>;
@@ -128,6 +140,23 @@ export type LoginInput = {
   email: Scalars['String'];
   password: Scalars['String'];
 };
+
+export type ForgotPasswordMutationVariables = Exact<{
+  email: Scalars['String'];
+}>;
+
+
+export type ForgotPasswordMutation = (
+  { __typename?: 'Mutation' }
+  & { forgotPassword: (
+    { __typename?: 'ForgotPassResponse' }
+    & Pick<ForgotPassResponse, 'completed'>
+    & { errors?: Maybe<Array<(
+      { __typename?: 'ForgotPassError' }
+      & Pick<ForgotPassError, 'field' | 'message'>
+    )>> }
+  ) }
+);
 
 export type LoginMutationVariables = Exact<{
   options: LoginInput;
@@ -231,6 +260,21 @@ export const UserInfoFragmentDoc = gql`
   updatedAt
 }
     `;
+export const ForgotPasswordDocument = gql`
+    mutation forgotPassword($email: String!) {
+  forgotPassword(email: $email) {
+    errors {
+      field
+      message
+    }
+    completed
+  }
+}
+    `;
+
+export function useForgotPasswordMutation() {
+  return Urql.useMutation<ForgotPasswordMutation, ForgotPasswordMutationVariables>(ForgotPasswordDocument);
+};
 export const LoginDocument = gql`
     mutation login($options: LoginInput!) {
   login(options: $options) {

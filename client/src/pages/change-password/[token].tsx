@@ -72,7 +72,8 @@ const ChangePassword: NextPage<WithUrqlProps> = (props) => {
     }, 1500);
   }
 
-  async function submit() {
+  async function submit(event: any) {
+    event.preventDefault();
     setSubmitted(true);
     setLoading(true);
     if (empty === true && valid === false) {
@@ -117,96 +118,97 @@ const ChangePassword: NextPage<WithUrqlProps> = (props) => {
   return (
     <>
       <Wrapper maxWVariant="80%">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center"
-          }}
-        >
-          <input
-            style={{width: "100%"}}
-            className={!valid && submitted ? 'forgot-input-with-error' : 'forgot-input'}
-            type="password"
-            value={password}
-            onChange={onPasswordChange}
-          />
-        </div>
-        <Box 
-          display="flex" 
-          justifyContent="center" 
-          flexDirection="column" 
-          maxWidth="100%" 
-        >
-          <div style={{textAlign: "center"}}>
-            <Button
-              w="100%"
-              mt={4}
-              colorScheme="teal"
-              isLoading={loading}
-              type="button"
-              onClick={submit}
-            >
-              Change Password
-            </Button>
+        <form onSubmit={submit}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center"
+            }}
+          >
+            <input
+              style={{width: "100%"}}
+              className={!valid && submitted ? 'forgot-input-with-error' : 'forgot-input'}
+              type="password"
+              value={password}
+              onChange={onPasswordChange}
+            />
           </div>
-          {/* error message display */}
-          {
-            mutationMessage.includes('Token')
-            ?
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  flexDirection: "column"
-                }}
+          <Box 
+            display="flex" 
+            justifyContent="center" 
+            flexDirection="column" 
+            maxWidth="100%" 
+          >
+            <div style={{textAlign: "center"}}>
+              <Button
+                w="100%"
+                mt={4}
+                colorScheme="teal"
+                isLoading={loading}
+                type="submit"
               >
-                <NextLink href="/forgot-password">
-                  <div>
-                    <p style={{margin: '0 auto', color: 'red', textAlign: "center"}}>
-                      {mutationMessage}
-                    </p>
-                    <Link>
-                    <p style={{margin: "0 auto", color: "teal", textAlign: "center"}}>
-                      Forgot Password?
-                    </p>
-                    </Link>
-                  </div>
-                </NextLink>
-              </div>
-            : 
-              null
-          }
-          {
-            mutationMessage.includes('Error!')
-            &&
-              <div style={{color: 'red', margin: '0 auto', textAlign: 'center'}}>
-                {mutationMessage}
-              </div>
-          }
-          {
-            mutationMessage.includes("Success!")
-            &&
-              <div style={{color: 'green', margin: '0 auto', textAlign: 'center'}}>
-                {mutationMessage}
-              </div>
-          }
-          {
-            errorMessage.length > 0
-            ?
-              <div
-                style={{
-                  width: "100%",
-                  color: "red",
-                  margin: "0 auto",
-                  textAlign: "center"
-                }}
-              >
-                {errorMessage}
-              </div>
-            : 
-              null
-          }
-        </Box>
+                Reset Password
+              </Button>
+            </div>
+            {/* error message display */}
+            {
+              mutationMessage.includes('Token')
+              ?
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    flexDirection: "column"
+                  }}
+                >
+                  <NextLink href="/forgot-password">
+                    <div>
+                      <p style={{margin: '0 auto', color: 'red', textAlign: "center"}}>
+                        {mutationMessage}
+                      </p>
+                      <Link>
+                      <p style={{margin: "0 auto", color: "teal", textAlign: "center"}}>
+                        Forgot Password?
+                      </p>
+                      </Link>
+                    </div>
+                  </NextLink>
+                </div>
+              : 
+                null
+            }
+            {
+              mutationMessage.includes('Error!')
+              &&
+                <div style={{color: 'red', margin: '0 auto', textAlign: 'center'}}>
+                  {mutationMessage}
+                </div>
+            }
+            {
+              mutationMessage.includes("Success!")
+              &&
+                <div style={{color: 'green', margin: '0 auto', textAlign: 'center'}}>
+                  {mutationMessage}
+                </div>
+            }
+            {
+              errorMessage.length > 0
+              ?
+                <div
+                  style={{
+                    width: "100%",
+                    color: "red",
+                    margin: "0 auto",
+                    textAlign: "center"
+                  }}
+                >
+                  {errorMessage}
+                </div>
+              : 
+                null
+            }
+          </Box>
+        </form>
       </Wrapper>
     </>
   );

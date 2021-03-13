@@ -10,6 +10,7 @@ import {
   ObjectType,
   Query 
 } from 'type-graphql';
+import { getConnection } from 'typeorm';
 import argon2 from 'argon2';
 import { COOKIE_NAME, FORGET_PASS_PREFIX } from '../constants';
 import { sendEmail } from '../utils/sendEmail';
@@ -41,31 +42,53 @@ class UserFieldError {
   message: String; 
 }
 
+@ObjectType()
+class ForgotPassError {
+  @Field()
+  field: String;
+  @Field()
+  message: String;
+}
+@ObjectType()
+class ForgotPassResponse {
+  @Field(() => [ForgotPassError], {nullable: true})
+  errors?: ForgotPassError[]
+  @Field(() => Boolean, {nullable: true})
+  completed?: Boolean
+}
+
 //user returned if worked
 // or error returned if error was there
 @ObjectType()
 class UserResponse {
   @Field(() => [UserFieldError], { nullable: true })
-  errors?: UserFieldError[]
+  errors?: UserFieldError[] | null
 
   @Field(() => User, { nullable: true })
-  user?: User
+  user?: User | undefined
 }
 
 @Resolver()
 export class UserResolver {
 
-  @Mutation(() => Boolean)
+  @Mutation(() => ForgotPassResponse)
   async forgotPassword(
     @Arg('email') email: string,
-    @Ctx() { em, RedisClient } : MyContext
-  ){
+    @Ctx() { RedisClient } : MyContext
+  ): Promise<ForgotPassResponse>{
     try {
-      const user = await em.findOne(User, {email});
+      const user = await User.findOne({ where: { email: email } })
       if (!user) {
         //email not in db
         // dont send the email
-        return true;
+        return {
+          errors: [
+            {
+              field: "Credentials",
+              message: "There was a problem with this request. Please try again later"
+            }
+          ]
+        };
       }
       //if we actually matched a user 
       // the mutation will take some time
@@ -85,10 +108,19 @@ export class UserResolver {
       await sendEmail(email,
         `<a href="http://localhost:3000/change-password/${token}">Reset your password</a>`
       );
-      return true;
+      return {
+        completed: true
+      }
     } catch (error) {
       console.log(error);
-      return true;
+      return {
+        errors: [
+          {
+            field: "Credentials",
+            message: "There was a problem with this request. Please try again later"
+          }
+        ]
+      };
     }
   }
 
@@ -96,11 +128,10 @@ export class UserResolver {
   async changePassword(
     @Arg('token') token: string,
     @Arg('newPassword') newPassword: string,
-    @Ctx() { em, RedisClient, req }: MyContext
+    @Ctx() { RedisClient, req }: MyContext
   ): Promise<UserResponse>{
 
     try {
-      
       if (newPassword.length <= 3) 
       {
         return {
@@ -128,14 +159,8 @@ export class UserResolver {
         };
       }
   
-      const user = await em.findOne
-      (
-        User,
-        {
-          id: parseInt(userId)
-        }
-      );
-
+      const userIdFound = parseInt(userId);
+      const user = await User.findOne(userIdFound);
       if (!user) 
       {
         return {
@@ -147,9 +172,12 @@ export class UserResolver {
           ],
         };
       }
-  
-      user.password = await argon2.hash(newPassword);
-      await em.persistAndFlush(user);
+
+      const hashedPassword = await argon2.hash(newPassword);
+      await User.update(
+        { id: userIdFound },
+        { password: hashedPassword }
+      );
 
       //delete the key so we can't change
       // the password again because the token
@@ -177,12 +205,12 @@ export class UserResolver {
 
   @Query(() => User, { nullable: true})
   async me(
-    @Ctx() { req, em }: MyContext
-  ){
+    @Ctx() { req }: MyContext
+  ): Promise<User | undefined>{
     // you are not logged in
-    if (!req.session.userId) return null;
+    if (!req.session.userId) return undefined;
 
-    const user = em.findOne(User, {id: req.session.userId});
+    const user = await User.findOne(req.session.userId);
     return user;
   }
 
@@ -228,7 +256,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async register(
     @Arg('options', () => RegisterInput) options: RegisterInput,
-    @Ctx() { req, em }: MyContext
+    @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     try 
@@ -268,16 +296,21 @@ export class UserResolver {
       }
   
       const hashedPassword = await argon2.hash(options.password);
-      const user = em.create
-      (
-        User,
+      let user;
+      const result = await getConnection().createQueryBuilder().insert().into(User).values(
         {
           username: options.username,
           email: options.email,
           password: hashedPassword
         }
-      );
-      await em.persistAndFlush(user);
+      )
+      .returning('*')
+      .execute();
+      console.log('query builder result', result);
+      //only returning the first user object in the array, 
+      // i guess I could insert as many objects into the table and will
+      // return more created objects into the raw array
+      user = result.raw[0];
 
       //login the user after registration
       req.session.userId = user.id;
@@ -350,9 +383,9 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async login(
     @Arg('options', () => LoginInput) options: LoginInput,
-    @Ctx() { em, req }: MyContext
+    @Ctx() { req }: MyContext
   ): Promise<UserResponse>{
-    const user = await em.findOne(User, { email: options.email });
+    const user = await User.findOne({ where: { email: options.email } });
     if (!user) 
     {
       return {

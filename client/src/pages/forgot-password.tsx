@@ -1,10 +1,11 @@
-import  Wrapper  from '../components/wrapper';
+import Wrapper from '../components/wrapper';
 import router from 'next/router';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
+import { useForgotPasswordMutation } from '../generated/graphql';
 
 const ForgotPassword: React.FC<{}> = ({}) => {
 
@@ -16,6 +17,7 @@ const ForgotPassword: React.FC<{}> = ({}) => {
   const [empty, setEmpty] = useState(true);
   const [loading, setLoading] = useState(false);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const [, forgotPassword] = useForgotPasswordMutation();
 
   //have to use this to trigger a re-render and recreate the validate
   // function to actually use the current copy of the previous state
@@ -24,7 +26,6 @@ const ForgotPassword: React.FC<{}> = ({}) => {
   useEffect(() => {
     document.title = "Forgot Password"
     function validateEmail(email: string) {
-      console.log(email);
       if (email.length <= 0) 
         setEmpty(true);
       if (email.length > 0) 
@@ -48,10 +49,7 @@ const ForgotPassword: React.FC<{}> = ({}) => {
     }
   }
 
-  interface IErrorOptions {
-    message: string,
-    type: string
-  }
+  interface IErrorOptions { message: string, type: string }
   function showErrorMessage(options: IErrorOptions ) {
     if (options.type === "empty") {
       setErrorMessage(options.message);
@@ -67,6 +65,13 @@ const ForgotPassword: React.FC<{}> = ({}) => {
         //keep error message visible to read 
       }, 1000);
     }
+    else if (options.type === "general") {
+      setErrorMessage(options.message);
+      setTimeout(() => {
+        setLoading(false);
+        setErrorMessage('');
+      }, 1000);
+    }
   }
 
   function showMutationError(message: string) {
@@ -75,122 +80,161 @@ const ForgotPassword: React.FC<{}> = ({}) => {
       setLoading(false);
     }, 1000);
   }
+
   function showMutationSuccess(message: string) {
     setMutationMessage(message);
     setTimeout(() => {
-      router.push('/');
-    }, 1500);
+      router.push('/login');
+    }, 3000);
   }
 
-  function submit() {
+  async function submit(event: any) {
+    event.preventDefault();
     setSubmitted(true);
     setLoading(true);
+    //validate before querying database
     if (empty === true && valid === false) {
       showErrorMessage({
         message: "Email field is empty!",
         type: "empty"
       });
+      return;
     } else if (valid === false) {
       showErrorMessage({
         message: "That is not a valid email. An example would be email@example.com",
         type: "email"
       });
+      return;
+    }
+    //valid enough to query database
+    if (valid === true && empty === false) {
+      try {
+        const objectToSubmit = {
+          "email": email
+        };
+        const response = await forgotPassword(objectToSubmit);
+        if (response) {
+          console.log(response);
+          if (response.data?.forgotPassword.errors) 
+          {
+            if (response.data?.forgotPassword.errors[0].field === "Credentials") {
+              showMutationError("Error! There was a problem with this request. Please try again later");
+              setEmail('');
+              return;
+            }
+          } 
+          else if (response.data?.forgotPassword.completed) 
+          {
+            showMutationSuccess('Success! A link to reset your password was sent to your email.');
+            setEmail('');
+          }
+        }
+      } catch (error) {
+        //something happened with the request, possible network error
+        console.log(error);
+        showErrorMessage({
+          message: "Error! There was a problem with this request. Please try again later",
+          type: "general"
+        });
+      }
     }
   }
 
   return (
     <>
       <Wrapper maxWVariant="80%">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center"
-          }}
-        >
-          <input
-            style={{width: "100%"}}
-            className={!valid && submitted ? 'forgot-input-with-error' : 'forgot-input'}
-            type="text"
-            value={email}
-            onChange={onEmailChange}
-          />
-        </div>
-        <Box 
-          display="flex" 
-          justifyContent="center" 
-          flexDirection="column" 
-          maxWidth="100%" 
-        >
-          <div style={{textAlign: "center"}}>
-            <Button
-              w="100%"
-              mt={4}
-              colorScheme="teal"
-              isLoading={loading}
-              type="button"
-              onClick={submit}
-            >
-              Send me an Email
-            </Button>
+        <form onSubmit={submit}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center"
+            }}
+          >
+            <input
+              style={{width: "100%"}}
+              className={!valid && submitted ? 'forgot-input-with-error' : 'forgot-input'}
+              type="text"
+              value={email}
+              onChange={onEmailChange}
+            />
           </div>
-          {/* error message display */}
-          {
-            mutationMessage.includes('Token')
-            ?
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  flexDirection: "column"
-                }}
+          <Box 
+            display="flex" 
+            justifyContent="center" 
+            flexDirection="column" 
+            maxWidth="100%" 
+          >
+            <div style={{textAlign: "center"}}>
+              <Button
+                w="100%"
+                mt={4}
+                colorScheme="teal"
+                isLoading={loading}
+                type="submit"
               >
-                <NextLink href="/forgot-password">
-                  <div>
-                    <p style={{margin: '0 auto', color: 'red', textAlign: "center"}}>
-                      {mutationMessage}
-                    </p>
-                    <Link>
-                    <p style={{margin: "0 auto", color: "teal", textAlign: "center"}}>
-                      Forgot Password?
-                    </p>
-                    </Link>
-                  </div>
-                </NextLink>
-              </div>
-            : 
-              null
-          }
-          {
-            mutationMessage.includes('Error!')
-            &&
-              <div style={{color: 'red', margin: '0 auto', textAlign: 'center'}}>
-                {mutationMessage}
-              </div>
-          }
-          {
-            mutationMessage.includes("Success!")
-            &&
-              <div style={{color: 'green', margin: '0 auto', textAlign: 'center'}}>
-                {mutationMessage}
-              </div>
-          }
-          {
-            errorMessage.length > 0
-            ?
-              <div
-                style={{
-                  width: "100%",
-                  color: "red",
-                  margin: "0 auto",
-                  textAlign: "center"
-                }}
-              >
-                {errorMessage}
-              </div>
-            : 
-              null
-          }
-        </Box>
+                Send me an Email
+              </Button>
+            </div>
+            {/* error message display */}
+            {
+              mutationMessage.includes('Token')
+              ?
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    flexDirection: "column"
+                  }}
+                >
+                  <NextLink href="/forgot-password">
+                    <div>
+                      <p style={{margin: '0 auto', color: 'red', textAlign: "center"}}>
+                        {mutationMessage}
+                      </p>
+                      <Link>
+                      <p style={{margin: "0 auto", color: "teal", textAlign: "center"}}>
+                        Forgot Password?
+                      </p>
+                      </Link>
+                    </div>
+                  </NextLink>
+                </div>
+              : 
+                null
+            }
+            {
+              mutationMessage.includes('Error!')
+              &&
+                <div style={{color: 'red', margin: '0 auto', textAlign: 'center'}}>
+                  {mutationMessage}
+                </div>
+            }
+            {
+              mutationMessage.includes("Success!")
+              &&
+                <div style={{color: 'green', margin: '0 auto', textAlign: 'center'}}>
+                  {mutationMessage}
+                </div>
+            }
+            {
+              errorMessage.length > 0
+              ?
+                <div
+                  style={{
+                    width: "100%",
+                    color: "red",
+                    margin: "0 auto",
+                    textAlign: "center"
+                  }}
+                >
+                  {errorMessage}
+                </div>
+              : 
+                null
+            }
+          </Box>
+
+        </form>
       </Wrapper>
     </>
   );
