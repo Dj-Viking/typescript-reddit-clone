@@ -2,7 +2,7 @@ import { ChakraProvider, ColorModeProvider } from '@chakra-ui/react';
 import React from 'react';
 import theme from '../theme';
 
-import './changepass.css';
+import './input-custom.css';
 
 function MyApp({ Component, pageProps }: any) {
   return (

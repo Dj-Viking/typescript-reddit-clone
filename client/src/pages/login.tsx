@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field, FieldConfig, FieldProps } from 'formik';
-import { Box, Button, FormControl, FormErrorMessage, FormLabel, Input } from '@chakra-ui/react';
+import { Box, Button, FormControl, FormErrorMessage, FormLabel, Input, Link } from '@chakra-ui/react';
 import Wrapper from '../components/wrapper';
 // import { useMutation } from 'urql';
 // import { REGISTER_MUTATION } from '../utils/mutations';
@@ -8,6 +8,7 @@ import { useRouter } from 'next/router';
 import { useLoginMutation } from '../generated/graphql';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
+import NextLink from 'next/link';
 
 interface LoginProps {}
 
@@ -17,6 +18,7 @@ const Login: React.FC<LoginProps> = ({}) => {
 
   //const [,Login] = useMutation(Login_MUTATION);
   const [, login] = useLoginMutation();
+  const [forgotMessage, setForgotMessage] = useState('');
 
   useEffect(() => {
     document.title = "Login"
@@ -32,7 +34,7 @@ const Login: React.FC<LoginProps> = ({}) => {
   function validateEmail(value: string) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let error = '';
-    if (!value) error = "Username is required";
+    if (!value) error = "Email is required";
     else if (emailRegex.test(value) === false) 
       error = "Email must be a valid format, i.e. example@mail.com";
     return error;
@@ -74,6 +76,7 @@ const Login: React.FC<LoginProps> = ({}) => {
                   : response.data?.login.errors[0].message
                 }`
               });
+              setForgotMessage('Did you forget your password?');
               setMutationMessage(`Error: ${response.data?.login.errors[0].message}`);
               setTimeout(() => {
                 actions.setSubmitting(false);
@@ -177,6 +180,22 @@ const Login: React.FC<LoginProps> = ({}) => {
                       margin: '0 auto'
                     }}>
                       {mutationMessage}
+                    </div>
+                }
+                {
+                  forgotMessage
+                  &&
+                    <div
+                      style={{
+                        color: "teal",
+                        margin: "0 auto"
+                      }}
+                    >
+                      <NextLink href="/forgot-password">
+                        <Link>
+                          {forgotMessage}
+                        </Link>
+                      </NextLink>
                     </div>
                 }
               </Box>

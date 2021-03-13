@@ -1,62 +1,72 @@
-import { Box, Button, Link } from '@chakra-ui/react';
-import { NextPage } from 'next';
-import { withUrqlClient, NextUrqlPageContext, WithUrqlProps } from 'next-urql';
+import  Wrapper  from '../components/wrapper';
 import router from 'next/router';
-import React, { useState, useEffect } from 'react';
-import Wrapper from '../../components/wrapper';
-import { useChangePasswordMutation } from '../../generated/graphql'
-import { createUrqlClient } from '../../utils/createUrqlClient';
+import { withUrqlClient } from 'next-urql';
+import { createUrqlClient } from '../utils/createUrqlClient';
+import React, { useEffect, useState } from 'react';
+import { Box, Button, Link } from '@chakra-ui/react';
 import NextLink from 'next/link';
 
-const ChangePassword: NextPage<WithUrqlProps> = (props) => {
+const ForgotPassword: React.FC<{}> = ({}) => {
 
   const [mutationMessage, setMutationMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [valid, setValid] = useState(false);
   const [empty, setEmpty] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [, changePassword ] = useChangePasswordMutation();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   //have to use this to trigger a re-render and recreate the validate
   // function to actually use the current copy of the previous state
   //  with a new value and not the previous state when observing the values
   // of the stateful values being set by useState 
   useEffect(() => {
-    document.title = "Change Password"
-    function validatePassword(password: string) {
-      if (password.length <= 0) {
-        setValid(false);
+    document.title = "Forgot Password"
+    function validateEmail(email: string) {
+      console.log(email);
+      if (email.length <= 0) 
         setEmpty(true);
-      }
-      if (password.length > 0) {
-        setErrorMessage('');
+      if (email.length > 0) 
         setEmpty(false);
-      }
-      if (password.length > 3) {
-        setErrorMessage('');
-        setValid(true);
-      } else if (password.length <= 3) {
+      if (emailRegex.test(email) === false) 
         setValid(false);
-      }
+      else if(emailRegex.test(email))   
+        setValid(true);
     }
-    setPassword(password);
-    validatePassword(password);
-  }, [password, setPassword, setValid, setEmpty, valid, empty]);
+    setEmail(email);
+    validateEmail(email);
+  }, [email, setEmail, setValid, setEmpty, valid, empty]);
 
   //need this in order to actually change the value of the input
   // to render onto the DOM
-  function onPasswordChange(event: any) {
-    setPassword(event.target.value);
+  function onEmailChange(event: any) {
+    setEmail(event.target.value);
+    //reset the error message on a valid change in realtime and not on a re-render
+    if (emailRegex.test(event.target.value)) {
+      setErrorMessage('');
+    }
   }
 
-  function showErrorMessage(message: string) {
-    setErrorMessage(message);
-    setTimeout(() => {
-      setLoading(false);
-      setErrorMessage('');
-    }, 1000);
+  interface IErrorOptions {
+    message: string,
+    type: string
+  }
+  function showErrorMessage(options: IErrorOptions ) {
+    if (options.type === "empty") {
+      setErrorMessage(options.message);
+      setTimeout(() => {
+        setLoading(false);
+        setErrorMessage('');
+      }, 1000);
+    }
+    else if (options.type === "email") {
+      setErrorMessage(options.message);
+      setTimeout(() => {
+        setLoading(false);
+        //keep error message visible to read 
+      }, 1000);
+    }
   }
 
   function showMutationError(message: string) {
@@ -72,45 +82,19 @@ const ChangePassword: NextPage<WithUrqlProps> = (props) => {
     }, 1500);
   }
 
-  async function submit() {
+  function submit() {
     setSubmitted(true);
     setLoading(true);
     if (empty === true && valid === false) {
-      showErrorMessage("Password field is empty!");
+      showErrorMessage({
+        message: "Email field is empty!",
+        type: "empty"
+      });
     } else if (valid === false) {
-      showErrorMessage("That is not a valid password. Must be more than 3 characters");
-    }
-    if (empty === false && valid === true) {
-      const objectToSubmit = {
-        "token": props.token,
-        "newPassword": password
-      }
-      try {
-        const response = await changePassword(objectToSubmit);
-        if (response) {
-          setLoading(true);
-          console.log(response);
-          if (response.data?.changePassword.errors)
-          {
-            if (response.data?.changePassword.errors[0].field === "token") {
-              showMutationError(`Token Error: ${response.data?.changePassword.errors[0].message}`);
-              return;
-            }
-            if (response.data?.changePassword.errors[0].field === "newPassword") {
-              showMutationError(`Error! ${response.data?.changePassword.errors[0].message}`);
-              return;
-            }
-          }
-          else if (response.data?.changePassword.user)
-          {
-            //change password success
-            showMutationSuccess(`Success! Teleporting to Home Page!`);
-          }
-        }
-      } catch (error) {
-        console.log(error);
-        showMutationError("Error! There was a problem with this request. Please try again later.");
-      }
+      showErrorMessage({
+        message: "That is not a valid email. An example would be email@example.com",
+        type: "email"
+      });
     }
   }
 
@@ -126,9 +110,9 @@ const ChangePassword: NextPage<WithUrqlProps> = (props) => {
           <input
             style={{width: "100%"}}
             className={!valid && submitted ? 'forgot-input-with-error' : 'forgot-input'}
-            type="password"
-            value={password}
-            onChange={onPasswordChange}
+            type="text"
+            value={email}
+            onChange={onEmailChange}
           />
         </div>
         <Box 
@@ -146,7 +130,7 @@ const ChangePassword: NextPage<WithUrqlProps> = (props) => {
               type="button"
               onClick={submit}
             >
-              Change Password
+              Send me an Email
             </Button>
           </div>
           {/* error message display */}
@@ -212,10 +196,4 @@ const ChangePassword: NextPage<WithUrqlProps> = (props) => {
   );
 }
 
-ChangePassword.getInitialProps = (ctx: NextUrqlPageContext): WithUrqlProps => {
-  // Do something with the urql Client instance!
-  const token = ctx.query
-  return token;
-}
-
-export default withUrqlClient(createUrqlClient, {ssr: false})(ChangePassword);
+export default withUrqlClient(createUrqlClient, {ssr: false})(ForgotPassword);
