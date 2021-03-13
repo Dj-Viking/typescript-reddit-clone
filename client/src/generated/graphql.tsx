@@ -24,7 +24,7 @@ export type Query = {
 
 
 export type QueryPostArgs = {
-  identifier: Scalars['Int'];
+  id: Scalars['Int'];
 };
 
 export type Post = {
@@ -33,7 +33,6 @@ export type Post = {
   createdAt: Scalars['String'];
   updatedAt: Scalars['String'];
   title: Scalars['String'];
-  createdBy: Scalars['String'];
 };
 
 export type User = {
@@ -47,7 +46,7 @@ export type User = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  createPost: PostResponse;
+  createPost: Post;
   updatePost: Post;
   deletePost: Scalars['Boolean'];
   forgotPassword: ForgotPassResponse;
@@ -92,18 +91,6 @@ export type MutationRegisterArgs = {
 
 export type MutationLoginArgs = {
   options: LoginInput;
-};
-
-export type PostResponse = {
-  __typename?: 'PostResponse';
-  errors?: Maybe<Array<PostFieldError>>;
-  post?: Maybe<Post>;
-};
-
-export type PostFieldError = {
-  __typename?: 'PostFieldError';
-  field: Scalars['String'];
-  message: Scalars['String'];
 };
 
 export type ForgotPassResponse = {
@@ -247,7 +234,7 @@ export type PostsQuery = (
   { __typename?: 'Query' }
   & { posts: Array<(
     { __typename?: 'Post' }
-    & Pick<Post, 'id' | 'title' | 'createdAt' | 'updatedAt' | 'createdBy'>
+    & Pick<Post, 'id' | 'title' | 'createdAt' | 'updatedAt'>
   )> }
 );
 
@@ -353,7 +340,6 @@ export const PostsDocument = gql`
     title
     createdAt
     updatedAt
-    createdBy
   }
 }
     `;

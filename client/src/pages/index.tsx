@@ -52,7 +52,7 @@ const Index = () => {
                 <span 
                   style={{margin: '0 10px', color: 'black', fontWeight: 'normal'}}
                 >
-                  {post.createdBy}
+                  {"not yet configured"}
                 </span> 
                 @ 
                 <span 

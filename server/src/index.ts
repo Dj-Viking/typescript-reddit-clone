@@ -29,6 +29,7 @@ async function main(){
     synchronize: true, //synchronize usually true during dev
     entities: [Post, User]
   });
+  console.log(connection);
 
   //create express app
   const app = express();
