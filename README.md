@@ -28,7 +28,7 @@ node application
   - SECRET,
   - NODEMAILER_AUTH_EMAIL, (can use the generated email in the console output for testing once nodemailer is able to execute)
   - NODEMAILER_AUTH_PASS (same as above)
-  - NODEMAILER_EMAIL_TO - define some valid email for testing purposes. the email actually doesn't get sent out to this address, it just spits a link into the server node console with the link to go reset the password. its not using an actual email client
+  - NODEMAILER_EMAIL_TO - define some valid email for testing purposes. the email actually doesn't get sent out to this address, it just spits a link into the server node console with the link to go reset an account's password. its not using an actual email client
 
 
 6. once everything is installed and configured
