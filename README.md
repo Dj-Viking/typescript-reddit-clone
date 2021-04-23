@@ -21,6 +21,10 @@ node application
   - once signed in use this command to set a password for the postgres user to access the db ```ALTER USER postgres PASSWORD '<new password>';``` and use that password for the DB_PASSWORD
   - must create a database name to input for the next step which requires logging into the postgresql shell and manually creating the database ```CREATE DATABASE <name>;``` semicolon is important for the database query!!
   - and then set a new password for the postgres user
+  - run this command to create the env file for the following server environment variables
+    ```sh
+      cd server; touch .env
+    ```
 5. must set ENV variables for
   - DB_NAME, 
   - DB_PASSWORD, 
