@@ -1,7 +1,7 @@
 ## Getting Started
 1. clone repo
 ```sh 
-  git clone
+  git clone git@github.com:Dj-Viking/fullstack-typescript-mern.git
 ```
 2. install dependencies
 ```sh
