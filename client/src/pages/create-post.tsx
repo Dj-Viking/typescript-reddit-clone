@@ -155,9 +155,9 @@ const CreatePost: React.FC<{}> = ({}) => {
               name="text"
               style={{width: "100%"}}
               className={
-                  submitted && textEmpty
-                  ? 'custom-input-with-error' 
-                  : 'custom-input'
+                submitted && textEmpty
+                ? 'custom-input-with-error' 
+                : 'custom-input'
               }
               value={text}
               onChange={onTextChange}
@@ -166,9 +166,9 @@ const CreatePost: React.FC<{}> = ({}) => {
             <input
               style={{width: "100%"}}
               className={
-                  submitted && titleEmpty
-                  ? 'custom-input-with-error' 
-                  : 'custom-input'
+                submitted && titleEmpty
+                ? 'custom-input-with-error' 
+                : 'custom-input'
               }
               type="text"
               value={title}
