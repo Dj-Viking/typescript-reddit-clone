@@ -1,4 +1,4 @@
-.forgot-input {
+.custom-input {
   border: black solid 1px;
   margin: 0 auto;
   width: 300px;
@@ -6,7 +6,7 @@
   font-size: 30px;
   border-radius: 10px;
 }
-.forgot-input:focus {
+.custom-input:focus {
   outline: none;
   border-radius: 10px;
   box-shadow: 0px 0px 1px rgba(0,100,255,1),
@@ -14,7 +14,7 @@
               0px 0px 3px rgba(0,100,255,1); 
 }
 
-.forgot-input-with-error {
+.custom-input-with-error {
   border: red solid 1px;
   margin: 0 auto;
   width: 300px;
@@ -23,7 +23,7 @@
   border-radius: 10px;
 }
 
-.forgot-input-with-error:focus {
+.custom-input-with-error:focus {
   outline: none;
   border-radius: 10px;
   box-shadow: 0px 0px 1px rgb(255, 0, 0),

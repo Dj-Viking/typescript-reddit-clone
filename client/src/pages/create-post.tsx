@@ -1,50 +1,57 @@
-import Wrapper from '../components/wrapper';
-import router from 'next/router';
-import { withUrqlClient } from 'next-urql';
-import { createUrqlClient } from '../utils/createUrqlClient';
-import React, { useEffect, useState } from 'react';
 import { Box, Button, Link } from '@chakra-ui/react';
+import router from 'next/router';
+import React, { useEffect, useState } from 'react';
+import Wrapper from '../components/wrapper';
 import NextLink from 'next/link';
-import { useForgotPasswordMutation } from '../generated/graphql';
 
-const ForgotPassword: React.FC<{}> = ({}) => {
+const CreatePost: React.FC<{}> = ({}) => {
 
   const [mutationMessage, setMutationMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [email, setEmail] = useState('');
+  const [text, setText] = useState('');
+  const [title, setTitle] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [valid, setValid] = useState(false);
-  const [empty, setEmpty] = useState(true);
+  const [textEmpty, isTextEmpty] = useState(true);
+  const [titleEmpty, isTitleEmpty] = useState(true);
   const [loading, setLoading] = useState(false);
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const [, forgotPassword] = useForgotPasswordMutation();
 
   //have to use this to trigger a re-render and recreate the validate
   // function to actually use the current copy of the previous state
   //  with a new value and not the previous state when observing the values
   // of the stateful values being set by useState 
   useEffect(() => {
-    document.title = "Forgot Password"
-    function validateEmail(email: string) {
-      if (email.length <= 0) 
-        setEmpty(true);
-      if (email.length > 0) 
-        setEmpty(false);
-      if (emailRegex.test(email) === false) 
-        setValid(false);
-      else if(emailRegex.test(email))   
-        setValid(true);
+    document.title = "Create Post"
+    function validateText(text: string) {
+      if (text.length <= 0) 
+        isTextEmpty(true);
+      if (text.length > 0) 
+        isTextEmpty(false);
     }
-    setEmail(email);
-    validateEmail(email);
-  }, [email, setEmail, setValid, setEmpty, valid, empty]);
+    function validateTitle(title: string) {
+      if (title.length <= 0)
+        isTitleEmpty(true);
+      if (title.length > 0) 
+        isTitleEmpty(false);
+    }
+    setText(text);
+    validateText(text);
+    setTitle(title);
+    validateTitle(title);
+  }, [text, setText, isTextEmpty, isTitleEmpty, textEmpty, titleEmpty]);
 
   //need this in order to actually change the value of the input
   // to render onto the DOM
-  function onEmailChange(event: any) {
-    setEmail(event.target.value);
+  function onTextChange(event: any) {
+    setText(event.target.value);
     //reset the error message on a valid change in realtime and not on a re-render
-    if (emailRegex.test(event.target.value)) {
+    if (event.target.value.length > 0) {
+      setErrorMessage('');
+    }
+  }
+  function onTitleChange(event: any) {
+    setText(event.target.value);
+    //reset the error message on a valid change in realtime and not on a re-render
+    if (event.target.value.length > 0) {
       setErrorMessage('');
     }
   }
@@ -93,24 +100,18 @@ const ForgotPassword: React.FC<{}> = ({}) => {
     setSubmitted(true);
     setLoading(true);
     //validate before querying database
-    if (empty === true && valid === false) {
-      showErrorMessage({
-        message: "Email field is empty!",
+    if (textEmpty === true || titleEmpty === true) {
+      return showErrorMessage({
+        message: "post text and post title is empty!",
         type: "empty"
       });
-      return;
-    } else if (valid === false) {
-      showErrorMessage({
-        message: "That is not a valid email. An example would be email@example.com",
-        type: "email"
-      });
-      return;
     }
     //valid enough to query database
-    if (valid === true && empty === false) {
+    if (textEmpty === false && titleEmpty === false) {
       try {
         const objectToSubmit = {
-          "email": email
+          "text": text,
+          "title": title
         };
         const response = await forgotPassword(objectToSubmit);
         if (response) {
@@ -119,19 +120,19 @@ const ForgotPassword: React.FC<{}> = ({}) => {
           {
             if (response.data?.forgotPassword.errors[0].field === "Credentials") {
               showMutationError("Error! There was a problem with this request. Please try again later");
-              setEmail('');
+              setText('');
               return;
             }
           } 
           else if (response.data?.forgotPassword.completed) 
           {
             showMutationSuccess('Success! A link to reset your password was sent to your email.');
-            setEmail('');
+            setText('');
           }
         }
       } catch (error) {
         //something happened with the request, possible network error
-        console.log(error);
+        console.error(error);
         showErrorMessage({
           message: "Error! There was a problem with this request. Please try again later",
           type: "general"
@@ -139,7 +140,6 @@ const ForgotPassword: React.FC<{}> = ({}) => {
       }
     }
   }
-
   return (
     <>
       <Wrapper maxWVariant="80%">
@@ -150,12 +150,29 @@ const ForgotPassword: React.FC<{}> = ({}) => {
               justifyContent: "center"
             }}
           >
+            <label htmlFor="text">Post Text</label>
+            <textarea
+              name="text"
+              style={{width: "100%"}}
+              className={
+                submitted && textEmpty
+                ? 'custom-input-with-error' 
+                : 'custom-input'
+              }
+              value={text}
+              onChange={onTextChange}
+            ></textarea>
+            <label htmlFor="title">Post Title</label>
             <input
               style={{width: "100%"}}
-              className={!valid && submitted ? 'custom-input-with-error' : 'custom-input'}
+              className={
+                submitted && titleEmpty
+                ? 'custom-input-with-error' 
+                : 'custom-input'
+              }
               type="text"
-              value={email}
-              onChange={onEmailChange}
+              value={title}
+              onChange={onTitleChange}
             />
           </div>
           <Box 
@@ -164,57 +181,24 @@ const ForgotPassword: React.FC<{}> = ({}) => {
             flexDirection="column" 
             maxWidth="100%" 
           >
-            <div style={{textAlign: "center"}}>
-              <Button
-                w="100%"
-                mt={4}
-                colorScheme="teal"
-                isLoading={loading}
-                type="submit"
-              >
-                Send me an Email
-              </Button>
-            </div>
             {/* error message display */}
             {
-              mutationMessage.includes('Token')
+              mutationMessage.includes('Error!')
               ?
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    flexDirection: "column"
-                  }}
-                >
-                  <NextLink href="/forgot-password">
-                    <div>
-                      <p style={{margin: '0 auto', color: 'red', textAlign: "center"}}>
-                        {mutationMessage}
-                      </p>
-                      <Link>
-                        <p style={{margin: "0 auto", color: "teal", textAlign: "center"}}>
-                          Forgot Password?
-                        </p>
-                      </Link>
-                    </div>
-                  </NextLink>
+                <div style={{color: 'red', margin: '0 auto', textAlign: 'center'}}>
+                  {mutationMessage}
                 </div>
               : 
                 null
             }
             {
-              mutationMessage.includes('Error!')
-              &&
-                <div style={{color: 'red', margin: '0 auto', textAlign: 'center'}}>
-                  {mutationMessage}
-                </div>
-            }
-            {
               mutationMessage.includes("Success!")
-              &&
+              ?
                 <div style={{color: 'green', margin: '0 auto', textAlign: 'center'}}>
                   {mutationMessage}
                 </div>
+              : 
+                null
             }
             {
               errorMessage.length > 0
@@ -239,5 +223,4 @@ const ForgotPassword: React.FC<{}> = ({}) => {
     </>
   );
 }
-
-export default withUrqlClient(createUrqlClient, {ssr: false})(ForgotPassword);
+export default CreatePost;
