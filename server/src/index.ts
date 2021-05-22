@@ -31,6 +31,10 @@ async function main(){
   });
   console.log(connection);
 
+  //delete all post items to reset the db since we made 
+  // some changes to the entity
+  // await Post.delete({})
+
   //create express app
   const app = express();
   

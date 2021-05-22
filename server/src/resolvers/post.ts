@@ -1,12 +1,19 @@
+
 //import { sleep } from 'src/utils/sleep';
+import { isAuth } from '../middleware/isAuth';
+import { MyContext } from 'src/types';
 import { 
   Arg, 
+  Ctx, 
+  Field, 
+  InputType, 
   //Field, 
   Int, 
   Mutation, 
   //ObjectType, 
   Query, 
-  Resolver 
+  Resolver, 
+  UseMiddleware
 } from 'type-graphql';
 import { getConnection } from 'typeorm';
 import { Post } from '../entities/Post';
@@ -24,6 +31,14 @@ import { Post } from '../entities/Post';
 //   @Field(() => Post, { nullable: true })
 //   post?: Post | null
 // }
+
+@InputType()
+class PostInput {
+  @Field()
+  title: string
+  @Field()
+  text: string
+}
 
 @Resolver()
 export class PostResolver {
@@ -103,13 +118,17 @@ export class PostResolver {
       }
    */
   @Mutation(() => Post)
+  //creating auth middleware for the resolver
+  @UseMiddleware(isAuth)
   async createPost(
-    @Arg('title') title: string,
+    @Arg('input') input: PostInput,
+    @Ctx() { req }: MyContext
   ): Promise<Post | undefined> {
     let post;
       const result = await getConnection().createQueryBuilder().insert().into(Post).values(
         {
-          title: title
+          ...input,
+          creatorId: req.session.userId
         }
       )
       .returning('*')
