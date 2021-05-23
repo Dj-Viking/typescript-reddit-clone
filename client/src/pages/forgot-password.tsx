@@ -142,7 +142,7 @@ const ForgotPassword: React.FC<{}> = ({}) => {
 
   return (
     <>
-      <Wrapper maxWVariant="80%">
+      <Wrapper variant="80%">
         <form onSubmit={submit}>
           <div
             style={{

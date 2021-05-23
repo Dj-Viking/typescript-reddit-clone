@@ -62,7 +62,10 @@ const NavBar: React.FC<navbarProps> = ({  }) => {
       style={{
         display: "flex",
         backgroundColor: "teal",
-        padding: "20px 0"
+        padding: "20px 0",
+        zIndex: 1,
+        position: "sticky",
+        top: 0
       }}
     >
       <Box
