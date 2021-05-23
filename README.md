@@ -14,7 +14,7 @@
 ```
 4. Must have postgresql installed for database access from the
 node application
-  - 
+  - use this command to sign into postgres after install to begin setting up the database for the application
   ```sh 
   sudo -u postgres psql template1
   ```
