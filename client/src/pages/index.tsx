@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
-import NavBar from '../components/navbar';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { usePostsQuery } from '../generated/graphql';
 import moment from 'moment';
+import Layout from '../components/layout';
+import { Link } from '@chakra-ui/react';
+import NextLink from 'next/link'
 
 const Index = () => {
 
@@ -22,49 +24,52 @@ const Index = () => {
 
   return (
     <>
-      <NavBar/>
-      <div>
-        hello world
-      </div>
-      {
-        !data ? <div>Loading...</div>
-        : 
-        data.posts.map(post => {
-          return (
-            <div
-              style={{marginTop: '10px'}}
-              key={post.id}
-            >
-              <p 
-                style={{fontWeight: 'bold'}}
+      <Layout>
+        <NextLink href="/create-post">
+          <Link style={{color: "teal"}}>
+            Create a Post
+          </Link>
+        </NextLink>
+        {
+          !data ? <div>Loading...</div>
+          : 
+          data.posts.map(post => {
+            return (
+              <div
+                style={{marginTop: '10px'}}
+                key={post.id}
               >
-                Title: 
-                <span 
-                  style={{marginLeft: '10px', fontWeight: 'normal'}}
+                <p 
+                  style={{fontWeight: 'bold'}}
                 >
-                  {post.title}
-                </span>
-              </p>
-              <p 
-                style={{color: 'black', fontWeight: 'bold'}}
-              >
-                Created By: 
-                <span 
-                  style={{margin: '0 10px', color: 'black', fontWeight: 'normal'}}
+                  Title: 
+                  <span 
+                    style={{marginLeft: '10px', fontWeight: 'normal'}}
+                  >
+                    {post.title}
+                  </span>
+                </p>
+                <p 
+                  style={{color: 'black', fontWeight: 'bold'}}
                 >
-                  {"not yet configured"}
-                </span> 
-                @ 
-                <span 
-                  style={{marginLeft: '10px', fontWeight: 'normal'}}
-                >
-                  {formatDate(Number(post.createdAt))}
-                </span>
-              </p>
-            </div>
-          )
-        })
-      }
+                  Created By: 
+                  <span 
+                    style={{margin: '0 10px', color: 'black', fontWeight: 'normal'}}
+                  >
+                    {"not yet configured"}
+                  </span> 
+                  @ 
+                  <span 
+                    style={{marginLeft: '10px', fontWeight: 'normal'}}
+                  >
+                    {formatDate(Number(post.createdAt))}
+                  </span>
+                </p>
+              </div>
+            )
+          })
+        } 
+      </Layout>
     </>
   );
 }

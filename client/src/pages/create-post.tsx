@@ -1,8 +1,11 @@
-import { Box, Button, Link } from '@chakra-ui/react';
-import router from 'next/router';
+import { Box, Button } from '@chakra-ui/react';
+import { withUrqlClient } from 'next-urql';
+import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
-import Wrapper from '../components/wrapper';
-import NextLink from 'next/link';
+import Layout from '../components/layout';
+// import NextLink from 'next/link';
+import { useCreatePostMutation } from '../generated/graphql';
+import { createUrqlClient } from '../utils/createUrqlClient';
 
 const CreatePost: React.FC<{}> = ({}) => {
 
@@ -14,7 +17,8 @@ const CreatePost: React.FC<{}> = ({}) => {
   const [textEmpty, isTextEmpty] = useState(true);
   const [titleEmpty, isTitleEmpty] = useState(true);
   const [loading, setLoading] = useState(false);
-
+  const [,createPost] = useCreatePostMutation();
+  const router = useRouter();
   //have to use this to trigger a re-render and recreate the validate
   // function to actually use the current copy of the previous state
   //  with a new value and not the previous state when observing the values
@@ -46,13 +50,15 @@ const CreatePost: React.FC<{}> = ({}) => {
     //reset the error message on a valid change in realtime and not on a re-render
     if (event.target.value.length > 0) {
       setErrorMessage('');
+      isTextEmpty(false);
     }
   }
   function onTitleChange(event: any) {
-    setText(event.target.value);
+    setTitle(event.target.value);
     //reset the error message on a valid change in realtime and not on a re-render
     if (event.target.value.length > 0) {
       setErrorMessage('');
+      isTitleEmpty(false)
     }
   }
 
@@ -62,14 +68,7 @@ const CreatePost: React.FC<{}> = ({}) => {
       setErrorMessage(options.message);
       setTimeout(() => {
         setLoading(false);
-        setErrorMessage('');
-      }, 1000);
-    }
-    else if (options.type === "email") {
-      setErrorMessage(options.message);
-      setTimeout(() => {
-        setLoading(false);
-        //keep error message visible to read 
+        // setErrorMessage('');
       }, 1000);
     }
     else if (options.type === "general") {
@@ -91,8 +90,8 @@ const CreatePost: React.FC<{}> = ({}) => {
   function showMutationSuccess(message: string) {
     setMutationMessage(message);
     setTimeout(() => {
-      router.push('/login');
-    }, 3000);
+      router.push('/');
+    }, 1000);
   }
 
   async function submit(event: any) {
@@ -102,39 +101,35 @@ const CreatePost: React.FC<{}> = ({}) => {
     //validate before querying database
     if (textEmpty === true || titleEmpty === true) {
       return showErrorMessage({
-        message: "post text and post title is empty!",
+        message: "Can't submit empty fields!",
         type: "empty"
       });
     }
     //valid enough to query database
     if (textEmpty === false && titleEmpty === false) {
       try {
+        
         const objectToSubmit = {
-          "text": text,
-          "title": title
-        };
-        const response = await forgotPassword(objectToSubmit);
-        if (response) {
-          console.log(response);
-          if (response.data?.forgotPassword.errors) 
-          {
-            if (response.data?.forgotPassword.errors[0].field === "Credentials") {
-              showMutationError("Error! There was a problem with this request. Please try again later");
-              setText('');
-              return;
-            }
-          } 
-          else if (response.data?.forgotPassword.completed) 
-          {
-            showMutationSuccess('Success! A link to reset your password was sent to your email.');
-            setText('');
+          "input": {
+            "text": text,
+            "title": title
           }
+        };
+        
+        const response = await createPost(objectToSubmit);
+        console.log('response', response);
+        
+        if (response.error?.graphQLErrors[0].message.includes("Not Authenticated")) {
+          return showMutationError(`Error! Must be logged in to create a post.`);
+        } else {
+          showMutationSuccess(`Success!: Teleporting to home page!`);
         }
+        
       } catch (error) {
         //something happened with the request, possible network error
         console.error(error);
         showErrorMessage({
-          message: "Error! There was a problem with this request. Please try again later",
+          message: "Error! We're sorry there was a problem with this request.",
           type: "general"
         });
       }
@@ -142,28 +137,19 @@ const CreatePost: React.FC<{}> = ({}) => {
   }
   return (
     <>
-      <Wrapper maxWVariant="80%">
+      <Layout variant="80%">
         <form onSubmit={submit}>
           <div
             style={{
               display: "flex",
-              justifyContent: "center"
+              justifyContent: "center",
+              flexDirection: "column", 
+              maxWidth: "100%" 
             }}
           >
-            <label htmlFor="text">Post Text</label>
-            <textarea
-              name="text"
-              style={{width: "100%"}}
-              className={
-                submitted && textEmpty
-                ? 'custom-input-with-error' 
-                : 'custom-input'
-              }
-              value={text}
-              onChange={onTextChange}
-            ></textarea>
             <label htmlFor="title">Post Title</label>
             <input
+              name="title"
               style={{width: "100%"}}
               className={
                 submitted && titleEmpty
@@ -174,6 +160,19 @@ const CreatePost: React.FC<{}> = ({}) => {
               value={title}
               onChange={onTitleChange}
             />
+            <label htmlFor="text">Post Text</label>
+            <textarea
+              name="text"
+              style={{width: "100%"}}
+              rows={3}
+              className={
+                submitted && textEmpty
+                ? 'custom-textarea-with-error' 
+                : 'custom-textarea'
+              }
+              value={text}
+              onChange={onTextChange}
+            ></textarea>
           </div>
           <Box 
             display="flex" 
@@ -181,6 +180,17 @@ const CreatePost: React.FC<{}> = ({}) => {
             flexDirection="column" 
             maxWidth="100%" 
           >
+            <div style={{textAlign: "center"}}>
+              <Button
+                w="100%"
+                mt={4}
+                colorScheme="teal"
+                isLoading={loading}
+                type="submit"
+              >
+                Create Post
+              </Button>
+            </div>
             {/* error message display */}
             {
               mutationMessage.includes('Error!')
@@ -219,8 +229,8 @@ const CreatePost: React.FC<{}> = ({}) => {
           </Box>
 
         </form>
-      </Wrapper>
+      </Layout>
     </>
   );
 }
-export default CreatePost;
+export default withUrqlClient(createUrqlClient, {ssr: false})(CreatePost);
